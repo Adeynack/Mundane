@@ -5,22 +5,24 @@ Mundane MoneyDance Extension
 
 ### MoneyDance development kit
 
-- Download the MoneyDance development kit following this link: [moneydance-devkit-4.0](http://infinitekind-downloads.s3.amazonaws.com/moneydance-devkit-4.0.tar.gz)
-- Extract it at the root of this project under the same name (without the extension)
-
 If on a POSIX system (linux, unix, Mac OS X), execute the following from the root of this project. It downloads and
 places the extracted files at the right place.
 
 ```
-    curl http://infinitekind-downloads.s3.amazonaws.com/moneydance-devkit-4.0.tar.gz | tar -zxv
+curl http://infinitekind-downloads.s3.amazonaws.com/moneydance-devkit-4.0.tar.gz | tar -zxv
 ```
+
+Otherwise, do it manually:
+- Download the MoneyDance development kit following this link: [moneydance-devkit-4.0](http://infinitekind-downloads.s3.amazonaws.com/moneydance-devkit-4.0.tar.gz)
+- Extract it at the root of this project under the same name (without the extension)
+
 
 ### Generate keys
 
 Simple execute this and enter a pass phrase you will remember. It will be needed everytime you build the extension. 
 
 ```
-    ant genkeys
+ant genkeys
 ```
 
 ### Build and package the extension
@@ -28,7 +30,7 @@ Simple execute this and enter a pass phrase you will remember. It will be needed
 Execute ```ant``` without argument will build & package the extension.
 
 ```
-    ant
+ant
 ```
 
 The result is the ```mxt``` file that can be found in ```dist```.
