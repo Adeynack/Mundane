@@ -13,7 +13,7 @@ curl http://infinitekind-downloads.s3.amazonaws.com/moneydance-devkit-4.0.tar.gz
 ```
 
 Otherwise, do it manually:
-- Download the MoneyDance development kit following this link: [moneydance-devkit-4.0](http://infinitekind-downloads.s3.amazonaws.com/moneydance-devkit-4.0.tar.gz)
+- Download the MoneyDance development kit following this link: [moneydance-devkit-4.0](http://infinitekind-downloads.s3.amazonaws.com/moneydance-devkit-4.0.tar.gz). The direct link may change, so refer to [Moneydance developper section](http://infinitekind.com/developer) on their website.
 - Extract it at the root of this project under the same name (without the extension)
 
 
