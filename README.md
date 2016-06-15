@@ -36,6 +36,38 @@ ant
 The result is the ```mxt``` file that can be found in ```dist```.
 
 
+## Develop with IntelliJ IDEA
+
+NB: This was written for IntelliJ IDEA 2016.1.3.
+
+### Getting started
+
+#### Create the project and set up dependencies
+
+- Open the root folder of the project in IntelliJ.
+- Menu "File" -> "Project Structure"
+    - Section "Project Settings" -> "Project"
+        - Set "Project compiler output" to "{path to the project}/build" (use the "..." button to help you)
+    - Section "Project Settings" -> "Libraries"
+        - Click the "+" button (2nd column) and chose "Java"
+        - Browse to the installation folder of Moneydance and select the sub-folder with all the JAR files in. Typically, this will be:
+            - on a Mac: /Applications/Moneydance.app/Contents/Java
+            - on Windows: C:\Program Files\Moneydance\jars
+            - on Linux: well ... wherever you installed it.
+        - Click "OK"
+        - In the "Choose Module" window appears, select "Mundane" and click "OK"
+        - Back in the "Project Structure" window, rename the newly added library to "Moneydance Installed" and click "OK" (bottom right).
+
+#### Select the source folder
+
+- In the "Project" pane (usually on the left), right-click on folder "src"
+- In "Mark directory as", select "Sources root"
+
+#### Debugging and running directly from the IDE
+
+TODO
+
+
 
 ## Original README from Infinite Kind
 
