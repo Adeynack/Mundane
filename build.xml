@@ -40,11 +40,12 @@ http://jakarta.apache.org/ant/index.html
 
         <jar destfile="${dist}/${ant.project.name}.mxt">
             <fileset dir="${src}" includes="
-             com/moneydance/modules/features/${ant.project.name}/meta_info.dict
-             com/moneydance/modules/features/${ant.project.name}/*.gif
-             com/moneydance/modules/features/${ant.project.name}/*.jpg
-             com/moneydance/modules/features/${ant.project.name}/*.jpeg"/>
+                 com/moneydance/modules/features/${ant.project.name}/meta_info.dict
+                 com/moneydance/modules/features/${ant.project.name}/*.gif
+                 com/moneydance/modules/features/${ant.project.name}/*.jpg
+                 com/moneydance/modules/features/${ant.project.name}/*.jpeg"/>
             <fileset dir="${build}" includes="com/moneydance/modules/features/${ant.project.name}/**"/>
+            <zipgroupfileset dir="lib" includes="**/*.jar"/>
         </jar>
 
         <java newenvironment="true"

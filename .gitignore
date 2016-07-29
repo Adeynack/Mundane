@@ -18,5 +18,6 @@ hs_err_pid*
 moneydance-devkit-4.0/
 dist/
 build/
+lib/
 priv_key
 pub_key

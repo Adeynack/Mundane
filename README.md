@@ -45,28 +45,61 @@ NB: This was written for IntelliJ IDEA 2016.1.3.
 #### Create the project and set up dependencies
 
 - Open the root folder of the project in IntelliJ.
-- Menu "File" -> "Project Structure"
-    - Section "Project Settings" -> "Project"
-        - Set "Project compiler output" to "{path to the project}/build" (use the "..." button to help you)
-    - Section "Project Settings" -> "Libraries"
-        - Click the "+" button (2nd column) and chose "Java"
+- Menu `File` -> `Project Structure`
+    - Section `Project Settings` -> `Project`
+        - Set `Project compiler output` to `{path to the project}/build` (use the `...` button to help you)
+    - Section `Project Settings` -> `Libraries`
+        - Click the `+` button (2nd column) and chose `Java`
         - Browse to the installation folder of Moneydance and select the sub-folder with all the JAR files in. Typically, this will be:
-            - on a Mac: /Applications/Moneydance.app/Contents/Java
-            - on Windows: C:\Program Files\Moneydance\jars
+            - on a Mac: `/Applications/Moneydance.app/Contents/Java`
+            - on Windows: `C:\Program Files\Moneydance\jars`
             - on Linux: well ... wherever you installed it.
-        - Click "OK"
-        - In the "Choose Module" window appears, select "Mundane" and click "OK"
-        - Back in the "Project Structure" window, rename the newly added library to "Moneydance Installed" and click "OK" (bottom right).
+        - Click `OK`
+        - In the `Choose Module` window appears, select `Mundane` and click `OK`
+        - Back in the `Project Structure` window, rename the newly added library to `Moneydance Installed` and click "OK" (bottom right).
 
 #### Select the source folder
 
-- In the "Project" pane (usually on the left), right-click on folder "src"
-- In "Mark directory as", select "Sources root"
+- In the `Project` pane (usually on the left), right-click on folder `src`
+- In `Mark directory as`, select `Sources root`
 
-#### Debugging and running directly from the IDE
+### Debugging and running directly from the IDE
 
-TODO
+Taken from a [forum post](http://help.infinitekind.com/discussions/moneydance-development/824-debugging-moneydance-extensions-in-eclipse) at infinitekind.
 
+#### In a nutshell
+
+Add a Run/Debug Configuration of type `Application` with the following settings:
+
+- `Main class`: `Moneydance`
+- `Working directory`:
+    - on Windows: `C:\Program Files\Moneydance\jars`
+    - on Mac OS X: `/Applications/Moneydance.app/Contents/Java`
+
+The first time, you need to:
+
+- build the extension from the command line (with `ant`)
+- start the application from IntelliJ (run or debug)
+- install the extension (the generated `.mxt` file, in folder `dist` of the project)
+
+The next times, the modifications will automatically be taken into account when started from IntelliJ. No need to build and install the extension at every change.
+
+
+## Note on document folder and configuration files
+
+### Mac OS X
+
+Configuration file when launched normally, from the Moneydance Mac OS X ".app":
+
+    ~/Library/Containers/com.infinitekind.MoneydanceOSX/Data/Library/Application Support/Moneydance
+
+Configuration file when launched manually (ie: from IntelliJ in 'debug'):
+
+    ~/Library/Application Support/Moneydance
+
+In both cases, the configuration file is `config.dict`. This facilitates the development since
+there can be 2 sets of settings, default data file and extensions. You will not mess with your
+normal files and configuration while developing.
 
 
 ## Original README from Infinite Kind
