@@ -18,13 +18,9 @@ public class Main extends FeatureModule {
     private AccountListWindow accountListWindow = null;
 
     public void init() {
-        // the first thing we will do is register this module to be invoked
-        // via the application toolbar
         FeatureModuleContext context = getContext();
         try {
             context.registerFeature(this, "showconsole", getIcon(), getName());
-            context.registerFeature(this, "foo", getIcon(), "Mundane foo");
-            context.registerFeature(this, "bar", getIcon(), "Mundane bar");
         } catch (Exception e) {
             e.printStackTrace(System.err);
         }
@@ -80,7 +76,7 @@ public class Main extends FeatureModule {
                 JOptionPane.showMessageDialog(null, "foo");
                 break;
             case "bar":
-                JOptionPane.showMessageDialog(null, "foo");
+                JOptionPane.showMessageDialog(null, "bar");
                 break;
         }
 
@@ -109,5 +105,3 @@ public class Main extends FeatureModule {
         }
     }
 }
-
-
