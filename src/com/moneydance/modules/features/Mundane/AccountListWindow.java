@@ -10,8 +10,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 
 /**
@@ -19,7 +17,7 @@ import java.awt.event.WindowEvent;
  */
 
 @SuppressWarnings("FieldCanBeLocal")
-class AccountListWindow extends JFrame implements ActionListener {
+class AccountListWindow extends JFrame {
 
     private Main extension;
     private JTree accountTree;
@@ -51,8 +49,8 @@ class AccountListWindow extends JFrame implements ActionListener {
 
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         enableEvents(WindowEvent.WINDOW_CLOSING);
-        closeButton.addActionListener(this);
-        refreshButton.addActionListener(this);
+        closeButton.addActionListener(e -> extension.closeConsole());
+        refreshButton.addActionListener(e -> fillAccountTree());
 
         setSize(500, 400);
         AwtUtil.centerWindow(this);
@@ -72,16 +70,6 @@ class AccountListWindow extends JFrame implements ActionListener {
             addSubAccounts(acct, subNode);
             node.add(subNode);
         });
-    }
-
-    public void actionPerformed(ActionEvent evt) {
-        Object src = evt.getSource();
-        if (src == closeButton) {
-            extension.closeConsole();
-        }
-        if (src == refreshButton) {
-            fillAccountTree();
-        }
     }
 
     public final void processEvent(AWTEvent evt) {
