@@ -3,6 +3,7 @@ package com.moneydance.modules.features.Mundane;
 import com.infinitekind.moneydance.model.Account;
 import com.infinitekind.moneydance.model.AccountBook;
 import com.moneydance.awt.AwtUtil;
+import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -38,12 +39,14 @@ class AccountListWindow extends JFrame implements ActionListener {
         refreshButton = new JButton("Refresh");
         closeButton = new JButton("Close");
 
-        JPanel p = new JPanel(new GridBagLayout());
+        JPanel p = new JPanel(new MigLayout(
+                "",
+                "grow",
+                "[grow][]"));
         p.setBorder(new EmptyBorder(10, 10, 10, 10));
-        p.add(new JScrollPane(accountTree), AwtUtil.getConstraints(0, 0, 1, 1, 4, 1, true, true));
-        p.add(Box.createVerticalStrut(8), AwtUtil.getConstraints(0, 2, 0, 0, 1, 1, false, false));
-        p.add(refreshButton, AwtUtil.getConstraints(0, 3, 1, 0, 1, 1, false, true));
-        p.add(closeButton, AwtUtil.getConstraints(1, 3, 1, 0, 1, 1, false, true));
+        p.add(new JScrollPane(accountTree), "span, grow, wrap");
+        p.add(refreshButton);
+        p.add(closeButton, "skip 2, align right");
         getContentPane().add(p);
 
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -57,11 +60,10 @@ class AccountListWindow extends JFrame implements ActionListener {
 
     private void fillAccountTree() {
         AccountBook rootAccount = extension.getUnprotectedContext().getCurrentAccountBook();
-        if (rootAccount != null) {
-            DefaultMutableTreeNode root = new DefaultMutableTreeNode("JTree");
-            addSubAccounts(rootAccount.getRootAccount(), root);
-            accountTree.setModel(new DefaultTreeModel(root));
-        }
+        if (rootAccount == null) return;
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode("JTree");
+        addSubAccounts(rootAccount.getRootAccount(), root);
+        accountTree.setModel(new DefaultTreeModel(root));
     }
 
     private static void addSubAccounts(Account parentAcct, DefaultMutableTreeNode node) {
