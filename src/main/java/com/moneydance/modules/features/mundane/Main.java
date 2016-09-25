@@ -38,7 +38,7 @@ public class Main extends FeatureModule {
     }
 
     public String getName() {
-        return "Account List";
+        return "Mundane";
     }
 
     public void cleanup() {
