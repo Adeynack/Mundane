@@ -1,33 +1,44 @@
-package com.moneydance.modules.features.Mundane;
+package com.moneydance.modules.features.mundane;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infinitekind.moneydance.model.AccountBook;
 import com.moneydance.apps.md.controller.FeatureModule;
 import com.moneydance.apps.md.controller.FeatureModuleContext;
+import com.moneydance.modules.features.mundane.json.JsonAccount;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.io.ByteArrayOutputStream;
 
 /**
  * Pluggable module used to give users access to a Account List
  * interface to Moneydance.
  */
-
 @SuppressWarnings("WeakerAccess")
 public class Main extends FeatureModule {
 
     private AccountListWindow accountListWindow = null;
+    private ObjectMapper mapper;
+
+    private static final String INVOKE_SHOW_CONSOLE = "showConsole";
+    private static final String INVOKE_ACCOUNTS_TO_JSON = "accountsToJson";
 
     public void init() {
+        mapper = new ObjectMapper();
         FeatureModuleContext context = getContext();
         try {
-            context.registerFeature(this, "showconsole", getIcon(), getName());
+            JOptionPane.showMessageDialog(null, "foo");
+            context.registerFeature(this, INVOKE_SHOW_CONSOLE, getIcon(), getName());
+            context.registerFeature(this, INVOKE_ACCOUNTS_TO_JSON, getIcon(), "Export account list to JSON in the clipboard");
         } catch (Exception e) {
             e.printStackTrace(System.err);
         }
     }
 
     public String getName() {
-        return "Mundane";
+        return "Account List";
     }
 
     public void cleanup() {
@@ -55,31 +66,16 @@ public class Main extends FeatureModule {
      * Process an invocation of this module with the given URI
      */
     public void invoke(String uri) {
-//        String command = uri;
-//        String parameters = "";
-//        int theIdx = uri.indexOf('?');
-//        if (theIdx >= 0) {
-//            command = uri.substring(0, theIdx);
-//            parameters = uri.substring(theIdx + 1);
-//        } else {
-//            theIdx = uri.indexOf(':');
-//            if (theIdx >= 0) {
-//                command = uri.substring(0, theIdx);
-//            }
-//        }
-
         switch (uri) {
-            case "showconsole":
+            case INVOKE_SHOW_CONSOLE:
                 showConsole();
                 break;
-            case "foo":
-                JOptionPane.showMessageDialog(null, "foo");
+            case INVOKE_ACCOUNTS_TO_JSON:
+                exportToJson();
                 break;
-            case "bar":
-                JOptionPane.showMessageDialog(null, "bar");
-                break;
+            default:
+                throw new RuntimeException(String.format("Invoked with unrecognized URI \"%s\".", uri));
         }
-
     }
 
     private synchronized void showConsole() {
@@ -102,6 +98,19 @@ public class Main extends FeatureModule {
             accountListWindow.goAway();
             accountListWindow = null;
             System.gc();
+        }
+    }
+
+    private void exportToJson() {
+        AccountBook rootAccount = getUnprotectedContext().getCurrentAccountBook();
+        if (rootAccount == null) return;
+        try {
+            JsonAccount[] accounts = JsonAccount.fromAccount(rootAccount.getRootAccount()).subAccounts;
+            String json = mapper.writeValueAsString(accounts);
+            StringSelection selection = new StringSelection(json);
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, selection);
+        } catch (JsonProcessingException e) {
+            JOptionPane.showMessageDialog(null, e.toString(), "Error exporting accounts to JSON", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

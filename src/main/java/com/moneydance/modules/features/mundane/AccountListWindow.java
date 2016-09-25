@@ -1,4 +1,4 @@
-package com.moneydance.modules.features.Mundane;
+package com.moneydance.modules.features.mundane;
 
 import com.infinitekind.moneydance.model.Account;
 import com.infinitekind.moneydance.model.AccountBook;
@@ -15,7 +15,6 @@ import java.awt.event.WindowEvent;
 /**
  * Window used for Account List interface
  */
-
 @SuppressWarnings("FieldCanBeLocal")
 class AccountListWindow extends JFrame {
 
@@ -47,7 +46,7 @@ class AccountListWindow extends JFrame {
         p.add(closeButton, "skip 2, align right");
         getContentPane().add(p);
 
-        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         enableEvents(WindowEvent.WINDOW_CLOSING);
         closeButton.addActionListener(e -> extension.closeConsole());
         refreshButton.addActionListener(e -> fillAccountTree());
@@ -59,7 +58,7 @@ class AccountListWindow extends JFrame {
     private void fillAccountTree() {
         AccountBook rootAccount = extension.getUnprotectedContext().getCurrentAccountBook();
         if (rootAccount == null) return;
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode("JTree");
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode("");
         addSubAccounts(rootAccount.getRootAccount(), root);
         accountTree.setModel(new DefaultTreeModel(root));
     }

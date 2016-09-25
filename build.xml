@@ -3,10 +3,15 @@ build file for ant
 http://jakarta.apache.org/ant/index.html
 -->
 
-<project name="Mundane" default="all" basedir=".">
+<project name="mundane" default="all" basedir=".">
     <property name="version" value="2.2"/>
-    <property name="src" value="./src"/>
-    <property name="build" value="./build"/>
+
+    <property name="md.devkit.path" value="moneydance-devkit-4.0"/>
+    <property name="dist" value="target"/>
+
+    <!-- Important: This has also to be the name of the package where the resources and the main extension class are. -->
+    <property name="sbt.jar.name" value="mundane"/>
+
     <property name="privkeyfile" value="priv_key"/>
     <property name="pubkeyfile" value="pub_key"/>
     <property name="privkeyid" value="99"/>
@@ -16,12 +21,9 @@ http://jakarta.apache.org/ant/index.html
     <property name="build.sysclasspath"
               value="ignore"/> <!-- suppress ridiculous "includeantruntime not set" messages from ant -->
     <property name="build.includeantruntime" value="false"/>
-    <property name="dist" value="dist"/>
     <property name="tmp" value="tmp"/>
     <property name="debug" value="on"/>
     <property name="optimize" value="off"/>
-
-    <property name="md.devkit.path" value="moneydance-devkit-4.0"/>
 
     <path id="classpath">
         <pathelement path="${md.devkit.path}/lib/extadmin.jar"/>
@@ -30,46 +32,39 @@ http://jakarta.apache.org/ant/index.html
 
     <target name="init">
         <mkdir dir="${dist}"/>
-        <mkdir dir="${build}"/>
     </target>
 
-    <target name="mundane" depends="init">
-        <javac target="1.8" source="1.8" srcdir="${src}" debug="${debug}" optimize="${optimize}"
-               classpathref="classpath" destdir="${build}"
-               includes="com/moneydance/modules/features/${ant.project.name}/**"/>
-
-        <jar destfile="${dist}/${ant.project.name}.mxt">
-            <fileset dir="${src}" includes="
-                 com/moneydance/modules/features/${ant.project.name}/meta_info.dict
-                 com/moneydance/modules/features/${ant.project.name}/*.gif
-                 com/moneydance/modules/features/${ant.project.name}/*.jpg
-                 com/moneydance/modules/features/${ant.project.name}/*.jpeg"/>
-            <fileset dir="${build}" includes="com/moneydance/modules/features/${ant.project.name}/**"/>
-            <zipgroupfileset dir="lib" includes="**/*.jar"/>
-        </jar>
-
-        <java newenvironment="true"
-              classpathref="classpath"
+    <target name="genkeys" depends="init">
+        <java classpathref="classpath"
               classname="com.moneydance.admin.KeyAdmin">
-            <arg value="signextjar"/>
-            <arg value="${privkeyfile}"/>
-            <arg value="${privkeyid}"/>
-            <arg value="${ant.project.name}"/>
-            <arg line="${dist}/${ant.project.name}.mxt"/>
-        </java>
-        <move file="s-${ant.project.name}.mxt" tofile="${dist}/${ant.project.name}.mxt"/>
-    </target>
-
-    <target name="genkeys">
-        <java
-                classpathref="classpath"
-                classname="com.moneydance.admin.KeyAdmin">
             <arg value="genkey"/>
             <arg value="${privkeyfile}"/>
             <arg value="${pubkeyfile}"/>
         </java>
     </target>
 
-    <target name="all" depends="mundane"/>
+    <target name="sign" depends="init">
+        <java newenvironment="true"
+              classpathref="classpath"
+              classname="com.moneydance.admin.KeyAdmin">
+            <arg value="signextjar"/>
+            <arg value="${privkeyfile}"/>
+            <arg value="${privkeyid}"/>
+            <!-- output: s-{value}.mxt | Output file name + name of the package internally -->
+            <arg value="${sbt.jar.name}"/>
+            <!-- source (file to be signed) -->
+            <arg line="${dist}/${sbt.jar.name}.jar"/>
+        </java>
+        <move file="s-${sbt.jar.name}.mxt" tofile="${dist}/${sbt.jar.name}.mxt"/>
+    </target>
+
+    <target name="build" depends="init">
+        <exec executable="sbt" failonerror="yes">
+            <arg value="assembly"/>
+        </exec>
+        <antcall target="sign"/>
+    </target>
+
+    <target name="all" depends="build"/>
 
 </project>
