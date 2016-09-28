@@ -6,6 +6,7 @@ import com.infinitekind.moneydance.model.AccountBook;
 import com.moneydance.apps.md.controller.FeatureModule;
 import com.moneydance.apps.md.controller.FeatureModuleContext;
 import com.moneydance.modules.features.mundane.json.JsonAccount;
+import com.moneydance.modules.features.mundane.utils.FrameSingleton;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,17 +21,23 @@ import java.io.ByteArrayOutputStream;
 public class Main extends FeatureModule {
 
     private AccountListWindow accountListWindow = null;
+    private final FrameSingleton<FullTextTransactionSearchWindow> fullTextSearchWindow;
     private ObjectMapper mapper;
 
     private static final String INVOKE_SHOW_CONSOLE = "showConsole";
+    private static final String INVOKE_FULL_TEXT_SEARCH = "fullTextSearch";
     private static final String INVOKE_ACCOUNTS_TO_JSON = "accountsToJson";
+
+    public Main() {
+        fullTextSearchWindow = new FrameSingleton<>(() -> new FullTextTransactionSearchWindow(getContext()));
+    }
 
     public void init() {
         mapper = new ObjectMapper();
         FeatureModuleContext context = getContext();
         try {
-            JOptionPane.showMessageDialog(null, "foo");
             context.registerFeature(this, INVOKE_SHOW_CONSOLE, getIcon(), getName());
+            context.registerFeature(this, INVOKE_FULL_TEXT_SEARCH, getIcon(), "Full Text Transaction Search");
             context.registerFeature(this, INVOKE_ACCOUNTS_TO_JSON, getIcon(), "Export account list to JSON in the clipboard");
         } catch (Exception e) {
             e.printStackTrace(System.err);
@@ -42,7 +49,8 @@ public class Main extends FeatureModule {
     }
 
     public void cleanup() {
-        closeConsole();
+        closeAllWindows();
+        fullTextSearchWindow.close();
     }
 
     private Image getIcon() {
@@ -70,6 +78,12 @@ public class Main extends FeatureModule {
             case INVOKE_SHOW_CONSOLE:
                 showConsole();
                 break;
+            case "CLOSE ALL":
+                cleanup();
+                break;
+            case INVOKE_FULL_TEXT_SEARCH:
+                fullTextSearchWindow.show();
+                break;
             case INVOKE_ACCOUNTS_TO_JSON:
                 exportToJson();
                 break;
@@ -93,7 +107,7 @@ public class Main extends FeatureModule {
         return getContext();
     }
 
-    synchronized void closeConsole() {
+    synchronized void closeAllWindows() {
         if (accountListWindow != null) {
             accountListWindow.goAway();
             accountListWindow = null;

@@ -48,7 +48,7 @@ class AccountListWindow extends JFrame {
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         enableEvents(WindowEvent.WINDOW_CLOSING);
-        closeButton.addActionListener(e -> extension.closeConsole());
+        closeButton.addActionListener(e -> extension.closeAllWindows());
         refreshButton.addActionListener(e -> fillAccountTree());
 
         setSize(500, 400);
@@ -73,7 +73,7 @@ class AccountListWindow extends JFrame {
 
     public final void processEvent(AWTEvent evt) {
         if (evt.getID() == WindowEvent.WINDOW_CLOSING) {
-            extension.closeConsole();
+            extension.closeAllWindows();
             return;
         }
 //        if (evt.getID() == WindowEvent.WINDOW_OPENED) {
