@@ -8,14 +8,16 @@ import net.miginfocom.layout.AC;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
-import org.jdesktop.swingx.MultiSplitLayout;
+import org.jdesktop.swingx.HorizontalLayout;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.List;
+import java.util.Vector;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -23,7 +25,6 @@ class FullTextTransactionSearchWindow extends JFrame {
 
     private final FeatureModuleContext context;
     private final JTextField txtSearchInput;
-    private final JTextArea txtResults = new JTextArea();
 
     private final Action actionSearch = new AbstractAction("Search") {
         @Override
@@ -38,6 +39,7 @@ class FullTextTransactionSearchWindow extends JFrame {
             dispose();
         }
     };
+    private final JScrollPane scrollResults;
 
     FullTextTransactionSearchWindow(FeatureModuleContext extensionContext) {
         super("Full Text Transaction Search");
@@ -60,7 +62,7 @@ class FullTextTransactionSearchWindow extends JFrame {
             public void keyPressed(KeyEvent e) {
                 switch (e.getKeyCode()) {
                     case KeyEvent.VK_ENTER:
-                        actionSearch.actionPerformed(new ActionEvent(txtResults, 0, ""));
+                        actionSearch.actionPerformed(new ActionEvent(txtSearchInput, 0, ""));
                         break;
                     default:
                         super.keyReleased(e);
@@ -73,10 +75,8 @@ class FullTextTransactionSearchWindow extends JFrame {
         btnSearch.setMnemonic('s');
         root.add(btnSearch, new CC().wrap());
 
-        txtResults.setFont(new Font("Courier", NORMAL, 14));
-
-        final JScrollPane scrollTxtResult = new JScrollPane(txtResults);
-        root.add(scrollTxtResult, new CC().spanX().wrap());
+        scrollResults = new JScrollPane(new JPanel());
+        root.add(scrollResults, new CC().spanX().wrap());
 
         final JPanel pnlButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
@@ -90,6 +90,11 @@ class FullTextTransactionSearchWindow extends JFrame {
         AwtUtil.centerWindow(this);
     }
 
+    private final Color RESULT_COLOR_DATE = new Color(51, 98, 175);
+    private final Color RESULT_COLOR_DESCRIPTION = new Color(139, 179, 244);
+    private final Color RESULT_COLOR_SOURCE = new Color(192, 209, 237);
+    private final Color RESULT_COLOR_DESTINATION = new Color(5, 44, 107);
+
     private void launchSearch() {
 //        JOptionPane.showMessageDialog(
 //                this,
@@ -97,9 +102,8 @@ class FullTextTransactionSearchWindow extends JFrame {
 //                "Search launched",
 //                JOptionPane.INFORMATION_MESSAGE);
         final String query = txtSearchInput.getText();
-        txtResults.setText(String.format("Starting search with query \"%s\".", query));
 
-        List<String> results = StreamSupport
+        List<List<JComponent>> grid = StreamSupport
                 .stream(context.getCurrentAccountBook().getTransactionSet().spliterator(), false)
                 .filter(t -> t instanceof ParentTxn)
                 .map(t -> (ParentTxn) t)
@@ -108,29 +112,56 @@ class FullTextTransactionSearchWindow extends JFrame {
                         t.hasKeywordSubstring(query, false)
                 )
                 .map(t -> {
+                    List<JComponent> row = new Vector<>();
+
                     final String intDateToStr = Integer.toString(t.getDateInt());
                     final String date = String.format("%s-%s-%s", intDateToStr.substring(0, 4), intDateToStr.substring(4, 6), intDateToStr.substring(6, 8));
-                    final String desc = t.getDescription();
-                    final String source = t.getAccount().getFullAccountName();
-                    String destinations;
-                    if (t.getSplitCount() > 1) {
-                        CharSequence[] splits = new CharSequence[t.getSplitCount()];
-                        for (int i = 0; i < t.getSplitCount(); ++i) {
-                            final SplitTxn split = t.getSplit(i);
-                            splits[i] = String.format("%s to %s", split.getAmount() / 100.0, split.getAccount().getFullAccountName());
-                        }
-                        destinations = String.format("[ %s ]", String.join(", ", splits));
-                    } else {
-                        final SplitTxn split = t.getSplit(0);
-                        destinations = String.format("%s to %s", split.getAmount() / 100.0, split.getAccount().getFullAccountName());
+                    final JLabel dateLabel = new JLabel(date);
+                    dateLabel.setOpaque(true);
+                    dateLabel.setBackground(RESULT_COLOR_DATE);
+                    dateLabel.setForeground(Color.WHITE);
+                    row.add(dateLabel);
+
+                    final JLabel descriptionLabel = new JLabel(t.getDescription());
+                    descriptionLabel.setOpaque(true);
+                    descriptionLabel.setBackground(RESULT_COLOR_DESCRIPTION);
+                    descriptionLabel.setForeground(Color.BLACK);
+                    row.add(descriptionLabel);
+
+                    final JLabel sourceLabel = new JLabel(t.getAccount().getFullAccountName());
+                    sourceLabel.setOpaque(true);
+                    sourceLabel.setBackground(RESULT_COLOR_SOURCE);
+                    sourceLabel.setForeground(Color.BLACK);
+                    row.add(sourceLabel);
+
+                    final JPanel destinations = new JPanel(new HorizontalLayout(8));
+                    for (int splitIndex = 0; splitIndex < t.getSplitCount(); ++splitIndex) {
+                        final SplitTxn split = t.getSplit(splitIndex);
+                        final String splitDesc = String.format("%s to %s", split.getAmount() / 100.0, split.getAccount().getFullAccountName());
+                        final JLabel splitLabel = new JLabel(splitDesc);
+                        splitLabel.setOpaque(true);
+                        splitLabel.setBackground(RESULT_COLOR_DESTINATION);
+                        splitLabel.setForeground(Color.WHITE);
+                        destinations.add(splitLabel);
                     }
-                    return String.format("%s: { %s } %s -> %s", date, desc, source, destinations);
+                    row.add(destinations);
+
+                    return row;
                 })
                 .collect(Collectors.toList());
 
-        txtResults.append("\n");
-        txtResults.append(String.join("\n", results));
+        final JPanel resultPane = new JPanel(new MigLayout(
+                new LC().gridGap("4px", "2px"),
+                new AC(),
+                new AC()
+        ));
+        grid.forEach(row -> {
+            for (int col = 0; col < row.size() - 1; ++col) {
+                resultPane.add(row.get(col), new CC().growX());
+            }
+            resultPane.add(row.get(row.size() - 1), new CC().growX().wrap());
+        });
+        scrollResults.setViewportView(resultPane);
     }
-
 
 }
