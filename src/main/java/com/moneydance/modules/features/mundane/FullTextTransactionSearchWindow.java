@@ -1,15 +1,17 @@
 package com.moneydance.modules.features.mundane;
 
-import com.infinitekind.moneydance.model.AbstractTxn;
+import com.infinitekind.moneydance.model.ParentTxn;
+import com.infinitekind.moneydance.model.SplitTxn;
 import com.moneydance.apps.md.controller.FeatureModuleContext;
 import com.moneydance.awt.AwtUtil;
 import net.miginfocom.layout.AC;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
+import org.jdesktop.swingx.MultiSplitLayout;
 
 import javax.swing.*;
-import java.awt.FlowLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -44,12 +46,9 @@ class FullTextTransactionSearchWindow extends JFrame {
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
         final JPanel root = new JPanel(new MigLayout(
-//                "debug",
                 new LC(),
-//                "[grow, fill]",
                 new AC().grow().fill().gap()
                         .shrink(),
-//                "[][grow, fill][r]"
                 new AC().shrink().gap()
                         .grow().fill().gap()
                         .shrink()
@@ -74,6 +73,8 @@ class FullTextTransactionSearchWindow extends JFrame {
         btnSearch.setMnemonic('s');
         root.add(btnSearch, new CC().wrap());
 
+        txtResults.setFont(new Font("Courier", NORMAL, 14));
+
         final JScrollPane scrollTxtResult = new JScrollPane(txtResults);
         root.add(scrollTxtResult, new CC().spanX().wrap());
 
@@ -84,7 +85,7 @@ class FullTextTransactionSearchWindow extends JFrame {
 
         root.add(pnlButtons, new CC().spanX());
 
-        setSize(500, 400);
+        setSize(1000, 400);
         getContentPane().add(root);
         AwtUtil.centerWindow(this);
     }
@@ -100,8 +101,31 @@ class FullTextTransactionSearchWindow extends JFrame {
 
         List<String> results = StreamSupport
                 .stream(context.getCurrentAccountBook().getTransactionSet().spliterator(), false)
-                .filter(t -> t.getDescription().contains(query))
-                .map(AbstractTxn::getDescription)
+                .filter(t -> t instanceof ParentTxn)
+                .map(t -> (ParentTxn) t)
+                .filter(t -> t.getDescription().contains(query) ||
+                        t.getAttachmentKeys().stream().anyMatch(ak -> ak.contains(query)) ||
+                        t.hasKeywordSubstring(query, false)
+                )
+                .map(t -> {
+                    final String intDateToStr = Integer.toString(t.getDateInt());
+                    final String date = String.format("%s-%s-%s", intDateToStr.substring(0, 4), intDateToStr.substring(4, 6), intDateToStr.substring(6, 8));
+                    final String desc = t.getDescription();
+                    final String source = t.getAccount().getFullAccountName();
+                    String destinations;
+                    if (t.getSplitCount() > 1) {
+                        CharSequence[] splits = new CharSequence[t.getSplitCount()];
+                        for (int i = 0; i < t.getSplitCount(); ++i) {
+                            final SplitTxn split = t.getSplit(i);
+                            splits[i] = String.format("%s to %s", split.getAmount() / 100.0, split.getAccount().getFullAccountName());
+                        }
+                        destinations = String.format("[ %s ]", String.join(", ", splits));
+                    } else {
+                        final SplitTxn split = t.getSplit(0);
+                        destinations = String.format("%s to %s", split.getAmount() / 100.0, split.getAccount().getFullAccountName());
+                    }
+                    return String.format("%s: { %s } %s -> %s", date, desc, source, destinations);
+                })
                 .collect(Collectors.toList());
 
         txtResults.append("\n");
