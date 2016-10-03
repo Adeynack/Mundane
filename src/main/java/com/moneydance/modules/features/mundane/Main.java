@@ -21,7 +21,7 @@ import java.io.ByteArrayOutputStream;
 public class Main extends FeatureModule {
 
     private AccountListWindow accountListWindow = null;
-    private final FrameSingleton<FullTextTransactionSearchWindow> fullTextSearchWindow;
+    private final FrameSingleton<FullTextTransactionSearchWindowScala> fullTextSearchWindow;
     private ObjectMapper mapper;
 
     private static final String INVOKE_SHOW_CONSOLE = "showConsole";
@@ -29,7 +29,7 @@ public class Main extends FeatureModule {
     private static final String INVOKE_ACCOUNTS_TO_JSON = "accountsToJson";
 
     public Main() {
-        fullTextSearchWindow = new FrameSingleton<>(() -> new FullTextTransactionSearchWindow(getContext()));
+        fullTextSearchWindow = new FrameSingleton<>(() -> new FullTextTransactionSearchWindowScala(getContext()));
     }
 
     public void init() {

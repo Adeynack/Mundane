@@ -2,7 +2,7 @@ organization := "com.github.moneydance"
 name := "mundane"
 version := "1.0-SNAPSHOT"
 
-autoScalaLibrary := false
+scalaVersion := "2.11.8"
 crossPaths := false
 
 resolvers += "Local Maven Repository" at s"file://${Path.userHome.absolutePath}/.m2/repository"
