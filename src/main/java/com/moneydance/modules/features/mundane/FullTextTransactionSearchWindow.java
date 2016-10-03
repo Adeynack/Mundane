@@ -65,7 +65,7 @@ class FullTextTransactionSearchWindow extends JFrame {
                         actionSearch.actionPerformed(new ActionEvent(txtSearchInput, 0, ""));
                         break;
                     default:
-                        super.keyReleased(e);
+                        super.keyPressed(e);
                 }
             }
         });
