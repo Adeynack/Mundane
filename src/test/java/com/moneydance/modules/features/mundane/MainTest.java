@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
+// todo: Find a way to run ScalaTest AND JUnit
+
 public class MainTest {
 
     private ObjectMapper mapper = new ObjectMapper();

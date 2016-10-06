@@ -22,7 +22,8 @@ libraryDependencies in mundane ++= Seq(
 
   // Tests
   "junit" % "junit" % "4.11" % "test",
-  "com.novocode" % "junit-interface" % "0.11" % "test"
+  "com.novocode" % "junit-interface" % "0.11" % "test",
+  "org.scalatest" %% "scalatest" % "3.0.0" % "test"
 )
 
 assemblyJarName in assembly := "mundane.jar" // has to be synched with sbt.jar.name in build.xml

@@ -1,18 +1,19 @@
 package com.moneydance.modules.features.mundane
 
-import scala.swing.Swing._
+import com.moneydance.modules.scala.Extensions._
 import java.awt.Color
 import java.awt.Color.{BLACK, WHITE}
-import java.awt.event.{InputEvent, KeyEvent}
-import javax.swing.KeyStroke
+import java.time.{LocalDate, ZoneId}
 
 import com.infinitekind.moneydance.model.ParentTxn
+import com.infinitekind.util.DateUtil
 import com.moneydance.apps.md.controller.FeatureModuleContext
 import com.moneydance.awt.AwtUtil
 
 import scala.collection.JavaConverters._
 import scala.language.postfixOps
 import scala.swing.FlowPanel.Alignment.{Left, Right}
+import scala.swing.Swing._
 import scala.swing._
 import scala.swing.event.{Key, KeyPressed, WindowClosed}
 
@@ -31,7 +32,6 @@ class FullTextTransactionSearchWindowScalaSwing(
   }
 
   val actionClose = Action("Close")(dispose())
-
 
   contents = new MigPanel {
 
@@ -52,6 +52,7 @@ class FullTextTransactionSearchWindowScalaSwing(
       listenTo(keys)
       reactions += {
         case KeyPressed(_, Key.Enter, _, _) => actionSearch()
+        case KeyPressed(_, Key.Escape, _, _) => actionClose()
       }
     }
     layout(txtSearchInput) = cc
@@ -62,18 +63,8 @@ class FullTextTransactionSearchWindowScalaSwing(
     val scrollResult = new ScrollPane(new MigPanel())
     layout(scrollResult) = cc.spanX.wrap
 
-    val txtFilterCount = new Label() {
-      private var counter = 0
-      private def setCounter(v: Int) = {
-        counter = v
-        text = v.toString
-      }
-      def reset() = setCounter(0)
-      def increment() = setCounter(counter + 1)
-    }
     val pnlButtons = new FlowPanel(Right)(
-      new Button(actionClose),
-      txtFilterCount
+      new Button(actionClose)
     )
     layout(pnlButtons) = cc.spanX
 
@@ -83,11 +74,9 @@ class FullTextTransactionSearchWindowScalaSwing(
 
         constraints.gridGap("4px", "2px")
 
-        txtFilterCount.reset()
         context.getCurrentAccountBook.getTransactionSet.asScala
           .collect { case t: ParentTxn => t }
           .filter { t =>
-            txtFilterCount.increment()
             t.getDescription.contains(query) ||
               t.getAttachmentKeys.asScala.exists(_.contains(query)) ||
               t.hasKeywordSubstring(query, false)
@@ -95,13 +84,7 @@ class FullTextTransactionSearchWindowScalaSwing(
           .foreach { t =>
 
             layout(new Label {
-              text = {
-                val d = t.getDateInt.toString
-                val year = d.substring(0, 4)
-                val month = d.substring(4, 6)
-                val day = d.substring(6, 8)
-                s"$year-$month-$day"
-              }
+              text = t.getDateLD.toString
               opaque = true
               background = resultColorDate
               foreground = WHITE

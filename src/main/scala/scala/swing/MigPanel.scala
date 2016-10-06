@@ -17,10 +17,9 @@ class MigPanel extends Panel
 
   override protected def areValid(c: CC): (Boolean, String) = (true, "")
 
-  override protected def add[T <: Component](comp: T, constraint: CC): T = {
-    peer.add(comp.peer, constraint)
-    comp
-  }
+  override protected def add(comp: Component, constraint: CC): Unit = peer.add(comp.peer, constraint)
+
+  protected def add(comp: Component): Unit = add(comp, cc)
 
   def constraints: LC = layoutManager.getLayoutConstraints.asInstanceOf[LC]
 
