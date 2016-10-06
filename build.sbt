@@ -7,7 +7,12 @@ crossPaths := false
 
 resolvers += "Local Maven Repository" at s"file://${Path.userHome.absolutePath}/.m2/repository"
 
-libraryDependencies ++= Seq(
+// https://github.com/Adeynack/scala-swing.git
+lazy val adeynackScalaSwing = RootProject(file("../scala-swing-adeynack"))
+
+lazy val mundane = project.in(file(".")) dependsOn adeynackScalaSwing
+
+libraryDependencies in mundane ++= Seq(
 
   // For compiling only (not packaged in assembly)
   "com.moneydance" % "moneydance-dev" % "4.0" % "provided",

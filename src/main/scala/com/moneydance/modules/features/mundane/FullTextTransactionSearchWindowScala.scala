@@ -4,7 +4,7 @@ import java.awt.event.{ActionEvent, KeyAdapter, KeyEvent}
 import java.awt.{Color, FlowLayout}
 import javax.swing._
 
-import com.infinitekind.moneydance.model.{ParentTxn, SplitTxn}
+import com.infinitekind.moneydance.model.ParentTxn
 import com.moneydance.apps.md.controller.FeatureModuleContext
 import com.moneydance.awt.AwtUtil
 import net.miginfocom.layout.{AC, CC, LC}
@@ -14,7 +14,7 @@ import scala.collection.JavaConverters._
 
 class FullTextTransactionSearchWindowScala(
   context: FeatureModuleContext
-) extends JFrame("Full Text TransactionSearch") {
+) extends JFrame("Full Text Transaction Search") {frame =>
 
   import FullTextTransactionSearchWindowScala._
 
@@ -27,6 +27,13 @@ class FullTextTransactionSearchWindowScala(
   }
 
   setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
+
+  addKeyListener(new KeyAdapter {
+    override def keyPressed(e: KeyEvent): Unit = e.getKeyCode match {
+      case KeyEvent.VK_ESCAPE => frame.dispose()
+      case _ => super.keyPressed(e)
+    }
+  })
 
   val root = new JPanel(new MigLayout(
     new LC(),
@@ -46,7 +53,7 @@ class FullTextTransactionSearchWindowScala(
       case _ => super.keyPressed(e)
     }
   })
-  root.add(txtSearchInput)
+  root.add(txtSearchInput, new CC())
 
   val btnSearch = new JButton(actionSearch)
   btnSearch.setMnemonic('s')
@@ -68,59 +75,60 @@ class FullTextTransactionSearchWindowScala(
 
   private def launchSearch() = {
     val query = txtSearchInput.getText()
-    val resultPane = new JPanel(new MigLayout(
+    scrollResults.setViewportView(new JPanel(new MigLayout(
       new LC().gridGap("4px", "2px"),
       new AC(),
       new AC()
-    ))
-    context.getCurrentAccountBook.getTransactionSet.asScala
-      .collect { case t: ParentTxn => t }
-      .filter { t =>
-        t.getDescription.contains(query) ||
-          t.getAttachmentKeys.asScala.exists(_.contains(query)) ||
-          t.hasKeywordSubstring(query, false)
-      }
-      .foreach { t =>
+    )) {
+      context.getCurrentAccountBook.getTransactionSet.asScala
+        .collect { case t: ParentTxn => t }
+        .filter { t =>
+          t.getDescription.contains(query) ||
+            t.getAttachmentKeys.asScala.exists(_.contains(query)) ||
+            t.hasKeywordSubstring(query, false)
+        }
+        .foreach { t =>
 
-        resultPane.add(new JLabel {
-          setText {
-            val d = t.getDateInt.toString
-            val year = d.substring(0, 4)
-            val month = d.substring(4, 6)
-            val day = d.substring(6, 8)
-            s"$year-$month-$day"
-          }
-          setOpaque(true)
-          setBackground(resultColorDate)
-          setForeground(Color.WHITE)
-        }, new CC().growX)
+          add(new JLabel {
+            setText {
+              val d = t.getDateInt.toString
+              val year = d.substring(0, 4)
+              val month = d.substring(4, 6)
+              val day = d.substring(6, 8)
+              s"$year-$month-$day"
+            }
+            setOpaque(true)
+            setBackground(resultColorDate)
+            setForeground(Color.WHITE)
+          }, new CC().growX)
 
-        resultPane.add(new JLabel {
-          setText(t.getDescription)
-          setBackground(resultColorDescription)
-          setForeground(Color.BLACK)
-        }, new CC().growX)
+          add(new JLabel {
+            setText(t.getDescription)
+            setOpaque(true)
+            setBackground(resultColorDescription)
+            setForeground(Color.BLACK)
+          }, new CC().growX)
 
-        resultPane.add(new JLabel {
-          setText(t.getAccount.getFullAccountName)
-          setBackground(resultColorSource)
-          setForeground(Color.BLACK)
-        }, new CC().growX)
+          add(new JLabel {
+            setText(t.getAccount.getFullAccountName)
+            setOpaque(true)
+            setBackground(resultColorSource)
+            setForeground(Color.BLACK)
+          }, new CC().growX)
 
-        resultPane.add(new JPanel {
-          setLayout(new FlowLayout(FlowLayout.LEFT))
-          Iterator.tabulate(t.getSplitCount)(t.getSplit).foreach { split =>
-            add(new JLabel {
-              setText(s"${split.getAmount / 100.0} to ${split.getAccount.getFullAccountName}")
-              setOpaque(true)
-              setBackground(resultColorDestination)
-              setForeground(Color.WHITE)
-            })
-          }
-        }, new CC().growX.wrap)
-      }
-
-    scrollResults.setViewportView(resultPane)
+          add(new JPanel {
+            setLayout(new FlowLayout(FlowLayout.LEFT))
+            Iterator.tabulate(t.getSplitCount)(t.getSplit).foreach { split =>
+              add(new JLabel {
+                setText(s"${split.getAmount / 100.0} to ${split.getAccount.getFullAccountName}")
+                setOpaque(true)
+                setBackground(resultColorDestination)
+                setForeground(Color.WHITE)
+              })
+            }
+          }, new CC().growX.wrap)
+        }
+    })
   }
 
 }

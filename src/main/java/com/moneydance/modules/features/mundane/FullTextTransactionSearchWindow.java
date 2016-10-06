@@ -20,20 +20,6 @@ class FullTextTransactionSearchWindow extends JFrame {
 
     private final FeatureModuleContext context;
     private final JTextField txtSearchInput;
-
-    private final Action actionSearch = new AbstractAction("Search") {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            launchSearch();
-        }
-    };
-
-    private final Action actionClose = new AbstractAction("Close") {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            dispose();
-        }
-    };
     private final JScrollPane scrollResults;
 
     FullTextTransactionSearchWindow(FeatureModuleContext extensionContext) {
@@ -90,61 +76,66 @@ class FullTextTransactionSearchWindow extends JFrame {
     private static final Color RESULT_COLOR_SOURCE = new Color(192, 209, 237);
     private static final Color RESULT_COLOR_DESTINATION = new Color(5, 44, 107);
 
-    private void launchSearch() {
-//        JOptionPane.showMessageDialog(
-//                this,
-//                String.format("Search launched with query \"%s\".", txtSearchInput.getText()),
-//                "Search launched",
-//                JOptionPane.INFORMATION_MESSAGE);
-        final String query = txtSearchInput.getText();
-        final JPanel resultPane = new JPanel(new MigLayout(
-                new LC().gridGap("4px", "2px"),
-                new AC(),
-                new AC()
-        ));
-        StreamSupport.stream(context.getCurrentAccountBook().getTransactionSet().spliterator(), false)
-                .filter(t -> t instanceof ParentTxn)
-                .map(t -> (ParentTxn) t)
-                .filter(t -> t.getDescription().contains(query) ||
-                        t.getAttachmentKeys().stream().anyMatch(ak -> ak.contains(query)) ||
-                        t.hasKeywordSubstring(query, false)
-                )
-                .forEach(t -> {
+    private final Action actionClose = new AbstractAction("Close") {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            dispose();
+        }
+    };
 
-                    final String intDateToStr = Integer.toString(t.getDateInt());
-                    final String date = String.format("%s-%s-%s", intDateToStr.substring(0, 4), intDateToStr.substring(4, 6), intDateToStr.substring(6, 8));
-                    final JLabel dateLabel = new JLabel(date);
-                    dateLabel.setOpaque(true);
-                    dateLabel.setBackground(RESULT_COLOR_DATE);
-                    dateLabel.setForeground(Color.WHITE);
-                    resultPane.add(dateLabel, new CC().growX());
+    private final Action actionSearch = new AbstractAction("Search") {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            final String query = txtSearchInput.getText();
+            final JPanel resultPane = new JPanel(new MigLayout(
+                    new LC().gridGap("4px", "2px"),
+                    new AC(),
+                    new AC()
+            ));
+            StreamSupport.stream(context.getCurrentAccountBook().getTransactionSet().spliterator(), false)
+                    .filter(t -> t instanceof ParentTxn)
+                    .map(t -> (ParentTxn) t)
+                    .filter(t -> t.getDescription().contains(query) ||
+                            t.getAttachmentKeys().stream().anyMatch(ak -> ak.contains(query)) ||
+                            t.hasKeywordSubstring(query, false)
+                    )
+                    .forEach(t -> {
 
-                    final JLabel descriptionLabel = new JLabel(t.getDescription());
-                    descriptionLabel.setOpaque(true);
-                    descriptionLabel.setBackground(RESULT_COLOR_DESCRIPTION);
-                    descriptionLabel.setForeground(Color.BLACK);
-                    resultPane.add(descriptionLabel, new CC().growX());
+                        final String intDateToStr = Integer.toString(t.getDateInt());
+                        final String date = String.format("%s-%s-%s", intDateToStr.substring(0, 4), intDateToStr.substring(4, 6), intDateToStr.substring(6, 8));
+                        final JLabel dateLabel = new JLabel(date);
+                        dateLabel.setOpaque(true);
+                        dateLabel.setBackground(RESULT_COLOR_DATE);
+                        dateLabel.setForeground(Color.WHITE);
+                        resultPane.add(dateLabel, new CC().growX());
 
-                    final JLabel sourceLabel = new JLabel(t.getAccount().getFullAccountName());
-                    sourceLabel.setOpaque(true);
-                    sourceLabel.setBackground(RESULT_COLOR_SOURCE);
-                    sourceLabel.setForeground(Color.BLACK);
-                    resultPane.add(sourceLabel, new CC().growX());
+                        final JLabel descriptionLabel = new JLabel(t.getDescription());
+                        descriptionLabel.setOpaque(true);
+                        descriptionLabel.setBackground(RESULT_COLOR_DESCRIPTION);
+                        descriptionLabel.setForeground(Color.BLACK);
+                        resultPane.add(descriptionLabel, new CC().growX());
 
-                    final JPanel destinations = new JPanel(new FlowLayout(FlowLayout.LEFT));
-                    for (int splitIndex = 0; splitIndex < t.getSplitCount(); ++splitIndex) {
-                        final SplitTxn split = t.getSplit(splitIndex);
-                        final String splitDesc = String.format("%s to %s", split.getAmount() / 100.0, split.getAccount().getFullAccountName());
-                        final JLabel splitLabel = new JLabel(splitDesc);
-                        splitLabel.setOpaque(true);
-                        splitLabel.setBackground(RESULT_COLOR_DESTINATION);
-                        splitLabel.setForeground(Color.WHITE);
-                        destinations.add(splitLabel);
-                    }
-                    resultPane.add(destinations, new CC().growX().wrap());
-                });
+                        final JLabel sourceLabel = new JLabel(t.getAccount().getFullAccountName());
+                        sourceLabel.setOpaque(true);
+                        sourceLabel.setBackground(RESULT_COLOR_SOURCE);
+                        sourceLabel.setForeground(Color.BLACK);
+                        resultPane.add(sourceLabel, new CC().growX());
 
-        scrollResults.setViewportView(resultPane);
-    }
+                        final JPanel destinations = new JPanel(new FlowLayout(FlowLayout.LEFT));
+                        for (int splitIndex = 0; splitIndex < t.getSplitCount(); ++splitIndex) {
+                            final SplitTxn split = t.getSplit(splitIndex);
+                            final String splitDesc = String.format("%s to %s", split.getAmount() / 100.0, split.getAccount().getFullAccountName());
+                            final JLabel splitLabel = new JLabel(splitDesc);
+                            splitLabel.setOpaque(true);
+                            splitLabel.setBackground(RESULT_COLOR_DESTINATION);
+                            splitLabel.setForeground(Color.WHITE);
+                            destinations.add(splitLabel);
+                        }
+                        resultPane.add(destinations, new CC().growX().wrap());
+                    });
+
+            scrollResults.setViewportView(resultPane);
+        }
+    };
 
 }
