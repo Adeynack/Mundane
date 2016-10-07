@@ -6,19 +6,18 @@ import java.awt.event.WindowEvent;
 import java.util.function.Supplier;
 
 /**
- * Manages a {@link JFrame}, ensuring that it is created when needed, not recreated if asked to be displayed and already
+ * Manages a {@link javax.swing.JFrame}, ensuring that it is created when needed, not recreated if asked to be displayed and already
  * exists and properly hidden and dispose when asked to.
- * @param <T> the concrete type of the {@link JFrame}.
  */
-public class FrameSingleton<T extends JFrame> {
+public class FrameSingleton {
 
-    private final Supplier<T> supplier;
-    private T frame = null;
+    private final Supplier<JFrame> supplier;
+    private JFrame frame = null;
 
     /**
      * @param supplier a function creating the frame.
      */
-    public FrameSingleton(Supplier<T> supplier) {
+    public FrameSingleton(Supplier<JFrame> supplier) {
         this.supplier = supplier;
     }
 

@@ -21,24 +21,32 @@ import java.io.ByteArrayOutputStream;
 public class Main extends FeatureModule {
 
     private AccountListWindow accountListWindow = null;
-    private final FrameSingleton<FullTextTransactionSearchWindow> fullTextSearchWindow;
+    private final FrameSingleton fullTextSearchWindow;
+    private final FrameSingleton fullTextSearchWindowScala;
+    private final FrameSingleton fullTextSearchWindowScalaSwing;
     private ObjectMapper mapper;
 
     private static final String INVOKE_SHOW_CONSOLE = "showConsole";
     private static final String INVOKE_FULL_TEXT_SEARCH = "fullTextSearch";
+    private static final String INVOKE_FULL_TEXT_SEARCH_SCALA = "fullTextSearchScala";
+    private static final String INVOKE_FULL_TEXT_SEARCH_SCALA_SWING = "fullTextSearchScalaSwing";
     private static final String INVOKE_ACCOUNTS_TO_JSON = "accountsToJson";
 
     public Main() {
-        fullTextSearchWindow = new FrameSingleton<>(() -> new FullTextTransactionSearchWindow(getContext()));
+        fullTextSearchWindow = new FrameSingleton(() -> new FullTextTransactionSearchWindow(getContext()));
+        fullTextSearchWindowScala = new FrameSingleton(() -> new FullTextTransactionSearchWindowScala(getContext()));
+        fullTextSearchWindowScalaSwing = new FrameSingleton(() -> new FullTextTransactionSearchWindowScalaSwing(getContext()).peer());
     }
 
     public void init() {
         mapper = new ObjectMapper();
         FeatureModuleContext context = getContext();
         try {
-            context.registerFeature(this, INVOKE_SHOW_CONSOLE, getIcon(), getName());
-            context.registerFeature(this, INVOKE_FULL_TEXT_SEARCH, getIcon(), "Full Text Transaction Search");
-            context.registerFeature(this, INVOKE_ACCOUNTS_TO_JSON, getIcon(), "Export account list to JSON in the clipboard");
+//            context.registerFeature(this, INVOKE_SHOW_CONSOLE, getIcon(), getName());
+            context.registerFeature(this, INVOKE_FULL_TEXT_SEARCH, getIcon(), "Full Text Transaction Search - Java + Swing");
+            context.registerFeature(this, INVOKE_FULL_TEXT_SEARCH_SCALA, getIcon(), "Full Text Transaction Search - Scala + Swing");
+            context.registerFeature(this, INVOKE_FULL_TEXT_SEARCH_SCALA_SWING, getIcon(), "Full Text Transaction Search - Scala + Scala-Swing");
+//            context.registerFeature(this, INVOKE_ACCOUNTS_TO_JSON, getIcon(), "Export account list to JSON in the clipboard");
         } catch (Exception e) {
             e.printStackTrace(System.err);
         }
@@ -83,6 +91,12 @@ public class Main extends FeatureModule {
                 break;
             case INVOKE_FULL_TEXT_SEARCH:
                 fullTextSearchWindow.show();
+                break;
+            case INVOKE_FULL_TEXT_SEARCH_SCALA:
+                fullTextSearchWindowScala.show();
+                break;
+            case INVOKE_FULL_TEXT_SEARCH_SCALA_SWING:
+                fullTextSearchWindowScalaSwing.show();
                 break;
             case INVOKE_ACCOUNTS_TO_JSON:
                 exportToJson();
