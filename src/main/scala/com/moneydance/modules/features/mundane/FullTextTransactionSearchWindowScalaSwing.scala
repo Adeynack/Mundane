@@ -1,14 +1,12 @@
 package com.moneydance.modules.features.mundane
 
-import com.moneydance.modules.scala.Extensions._
 import java.awt.Color
-import java.awt.Color.{BLACK, WHITE}
-import java.time.{LocalDate, ZoneId}
+import java.awt.Color.{black, white}
 
 import com.infinitekind.moneydance.model.ParentTxn
-import com.infinitekind.util.DateUtil
 import com.moneydance.apps.md.controller.FeatureModuleContext
 import com.moneydance.awt.AwtUtil
+import com.moneydance.modules.scala.Extensions._
 
 import scala.collection.JavaConverters._
 import scala.language.postfixOps
@@ -87,21 +85,21 @@ class FullTextTransactionSearchWindowScalaSwing(
               text = t.getDateLD.toString
               opaque = true
               background = resultColorDate
-              foreground = WHITE
+              foreground = white
             }) = cc.growX
 
             layout(new Label {
               text = t.getDescription
               opaque = true
               background = resultColorDescription
-              foreground = BLACK
+              foreground = black
             }) = cc
 
             layout(new Label {
               text = t.getAccount.getFullAccountName
               opaque = true
               background = resultColorSource
-              foreground = BLACK
+              foreground = black
             }) = cc
 
             layout(new FlowPanel(Left)(
@@ -110,7 +108,7 @@ class FullTextTransactionSearchWindowScalaSwing(
                   text = s"${split.getAmount / 100.0} to ${split.getAccount.getFullAccountName}"
                   opaque = true
                   background = resultColorDestination
-                  foreground = WHITE
+                  foreground = white
                 }
               }.toSeq: _*
             )) = cc.growX.wrap

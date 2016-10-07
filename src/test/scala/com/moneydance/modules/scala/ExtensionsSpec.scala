@@ -24,8 +24,12 @@ class ExtensionsSpec extends FreeSpec with Matchers {
       Extensions.mdIntDateToLocalDate(18001225) shouldEqual LocalDate.of(1800, 12, 25)
     }
 
-    "parse 11001225" in {
+    "parse 16001225" in {
       Extensions.mdIntDateToLocalDate(16001225) shouldEqual LocalDate.of(1600, 12, 25)
+    }
+
+    "parse 9990101" in {
+      Extensions.mdIntDateToLocalDate(9990101) shouldEqual LocalDate.of(999, 1, 1)
     }
 
   }
