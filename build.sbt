@@ -18,6 +18,7 @@ libraryDependencies in mundane ++= Seq(
   "com.moneydance" % "moneydance-dev" % "4.0" % "provided",
 
   "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.1",
+  "com.typesafe.play" %% "play-json" % "2.5.8",
   "com.miglayout" % "miglayout-swing" % "5.0",
 
   // Tests
