@@ -1,5 +1,6 @@
-package scala.swing
+package com.github.adeynack.scala.swing
 
+import scala.swing.Frame
 import scala.swing.event.WindowClosed
 
 class FrameManager(val builder: () => Frame) {

@@ -3,10 +3,11 @@ package com.moneydance.modules.features.mundane
 import java.awt.Color
 import java.awt.Color.{black, white}
 
+import com.github.adeynack.scala.swing.MigPanel
 import com.infinitekind.moneydance.model.ParentTxn
 import com.moneydance.apps.md.controller.FeatureModuleContext
 import com.moneydance.awt.AwtUtil
-import com.moneydance.modules.scala.Extensions._
+import com.moneydance.modules.scalamd.Extensions._
 
 import scala.collection.JavaConverters._
 import scala.language.postfixOps
@@ -76,8 +77,8 @@ class FullTextTransactionSearchWindowScalaSwing(
           .collect { case t: ParentTxn => t }
           .filter { t =>
             t.getDescription.contains(query) ||
-              t.getAttachmentKeys.asScala.exists(_.contains(query)) ||
-              t.hasKeywordSubstring(query, false)
+            t.getAttachmentKeys.asScala.exists(_.contains(query)) ||
+            t.hasKeywordSubstring(query, false)
           }
           .foreach { t =>
 

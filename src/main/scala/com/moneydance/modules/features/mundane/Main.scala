@@ -1,14 +1,11 @@
 package com.moneydance.modules.features.mundane
 
-import java.awt.{Image, Toolkit}
+import java.awt.{Font, Image, Toolkit}
 import java.io.ByteArrayOutputStream
 
-import com.infinitekind.moneydance.model.Account
+import com.github.adeynack.scala.swing.FrameManager
 import com.moneydance.apps.md.controller.FeatureModule
 import play.api.libs.json._
-
-import scala.collection.JavaConverters._
-import scala.swing.FrameManager
 
 class Main extends FeatureModule {
 
@@ -48,10 +45,13 @@ class Main extends FeatureModule {
   }
 
   def exportToJson(): Unit = {
+    import com.moneydance.modules.scalamd.MdJsonFormats._
+
     import scala.swing._
-    import Main.accountWrites
     new Frame() {
-      contents = new ScrollPane(new TextArea(Json.prettyPrint(Json.toJson(getContext.getRootAccount))))
+      contents = new ScrollPane(new TextArea(Json.prettyPrint(Json.toJson(getContext.getRootAccount))) {
+        font = new Font("Courier New", Font.BOLD, 16)
+      })
       visible = true
     }
   }
@@ -63,13 +63,6 @@ object Main {
   object invokeStr {
     val fullTextSearch = "fullTextSearch"
     val accountsToJson = "accountsToJson"
-  }
-
-  implicit val accountWrites: Writes[Account] = new Writes[Account] {
-    def writes(a: Account): JsValue = Json.obj(
-      "name" -> a.getAccountName,
-      "subAccounts" -> a.getSubAccounts.asScala.map(writes)
-    )
   }
 
 }
