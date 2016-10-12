@@ -4,7 +4,6 @@ crossPaths := false
 
 resolvers += "Local Maven Repository" at s"file://${Path.userHome.absolutePath}/.m2/repository"
 
-// https://github.com/Adeynack/scala-swing.git
 lazy val scalaSwing = RootProject(uri("https://github.com/scala/scala-swing.git"))
 
 lazy val mundane = project.in(file("."))
