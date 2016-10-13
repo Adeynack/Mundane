@@ -1,4 +1,4 @@
-package com.moneydance.modules.scala
+package com.moneydance.modules.scalamd
 
 import java.time.LocalDate
 
@@ -13,7 +13,7 @@ object Extensions {
     val month = (i / 100) % 100 // = (20161008 / 100) % 100 = 201610 % 100 = 10
     val day = i % 100 // = 20161008 % 100 = 08
     LocalDate.of(year, month, day)
-    // NB: This implementation seams more logical, but is proven to be buggy:
+    // NB: The following implementation seams more logical, but is proven to be buggy:
     // DateUtil.convertIntDateToLong(i).toInstant.atZone(ZoneId.systemDefault()).toLocalDate
   }
 

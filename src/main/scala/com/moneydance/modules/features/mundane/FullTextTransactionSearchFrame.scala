@@ -3,10 +3,11 @@ package com.moneydance.modules.features.mundane
 import java.awt.Color
 import java.awt.Color.{black, white}
 
+import com.github.adeynack.scala.swing.MigPanel
 import com.infinitekind.moneydance.model.ParentTxn
 import com.moneydance.apps.md.controller.FeatureModuleContext
 import com.moneydance.awt.AwtUtil
-import com.moneydance.modules.scala.Extensions._
+import com.moneydance.modules.scalamd.Extensions._
 
 import scala.collection.JavaConverters._
 import scala.language.postfixOps
@@ -15,11 +16,11 @@ import scala.swing.Swing._
 import scala.swing._
 import scala.swing.event.{Key, KeyPressed, WindowClosed}
 
-class FullTextTransactionSearchWindowScalaSwing(
+class FullTextTransactionSearchFrame(
   context: FeatureModuleContext
 ) extends Frame {frame =>
 
-  import FullTextTransactionSearchWindowScalaSwing._
+  import FullTextTransactionSearchFrame._
 
   title = "Full Text Transaction Search"
   preferredSize = (1000, 600)
@@ -32,8 +33,6 @@ class FullTextTransactionSearchWindowScalaSwing(
   val actionClose = Action("Close")(dispose())
 
   contents = new MigPanel {
-
-    //    constraints
 
     columns
       .grow.fill.gap
@@ -76,8 +75,8 @@ class FullTextTransactionSearchWindowScalaSwing(
           .collect { case t: ParentTxn => t }
           .filter { t =>
             t.getDescription.contains(query) ||
-              t.getAttachmentKeys.asScala.exists(_.contains(query)) ||
-              t.hasKeywordSubstring(query, false)
+            t.getAttachmentKeys.asScala.exists(_.contains(query)) ||
+            t.hasKeywordSubstring(query, false)
           }
           .foreach { t =>
 
@@ -121,7 +120,7 @@ class FullTextTransactionSearchWindowScalaSwing(
 
 }
 
-object FullTextTransactionSearchWindowScalaSwing {
+object FullTextTransactionSearchFrame {
 
   private val resultColorDate = new Color(51, 98, 175)
   private val resultColorDescription = new Color(139, 179, 244)

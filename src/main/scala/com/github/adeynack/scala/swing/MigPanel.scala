@@ -1,7 +1,9 @@
-package scala.swing
+package com.github.adeynack.scala.swing
 
 import net.miginfocom.layout._
 import net.miginfocom.swing.MigLayout
+
+import scala.swing._
 
 class MigPanel extends Panel
   with LayoutContainer

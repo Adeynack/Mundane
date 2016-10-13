@@ -1,4 +1,4 @@
-package com.moneydance.modules.scala
+package com.moneydance.modules.scalamd
 
 import java.time.LocalDate
 
