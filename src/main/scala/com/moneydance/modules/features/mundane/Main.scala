@@ -4,17 +4,17 @@ import java.awt.{Font, Image, Toolkit}
 import java.io.ByteArrayOutputStream
 
 import com.github.adeynack.scala.swing.FrameManager
-import com.moneydance.apps.md.controller.FeatureModule
+import com.moneydance.apps.md.controller.{FeatureModule, Main => MdMain}
 import play.api.libs.json._
 
 class Main extends FeatureModule {
 
   import Main._
 
-  private val fullTextTransactionSearch = new FrameManager(() => new FullTextTransactionSearchFrame(getContext))
+  private lazy val context = getContext.asInstanceOf[MdMain]
+  private val fullTextTransactionSearch = new FrameManager(() => new FullTextTransactionSearchFrame(context))
 
   override def init(): Unit = {
-    val context = getContext
     context.registerFeature(this, invokeStr.fullTextSearch, icon, "Full Text Transaction Search")
     context.registerFeature(this, invokeStr.accountsToJson, icon, "Export account list to JSON in the clipboard")
   }

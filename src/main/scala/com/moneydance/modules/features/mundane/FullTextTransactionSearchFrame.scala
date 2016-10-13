@@ -5,22 +5,25 @@ import java.awt.Color.{black, white}
 
 import com.github.adeynack.scala.swing.MigPanel
 import com.infinitekind.moneydance.model.ParentTxn
-import com.moneydance.apps.md.controller.FeatureModuleContext
+import com.moneydance.apps.md.controller.{Main => MdMain}
 import com.moneydance.awt.AwtUtil
 import com.moneydance.modules.scalamd.Extensions._
+import com.moneydance.modules.scalamd.JsonFileSetting
+import play.api.libs.json.{Format, Json}
 
 import scala.collection.JavaConverters._
-import scala.language.postfixOps
 import scala.swing.FlowPanel.Alignment.{Left, Right}
 import scala.swing.Swing._
 import scala.swing._
 import scala.swing.event.{Key, KeyPressed, WindowClosed}
 
 class FullTextTransactionSearchFrame(
-  context: FeatureModuleContext
+  implicit private val context: MdMain
 ) extends Frame {frame =>
 
   import FullTextTransactionSearchFrame._
+
+  val settings = JsonFileSetting(this, Settings())
 
   title = "Full Text Transaction Search"
   preferredSize = (1000, 600)
@@ -46,6 +49,7 @@ class FullTextTransactionSearchFrame(
     val actionSearch = Action("Search")(performQuery())
 
     val txtSearchInput = new TextField {
+      text = settings.get.lastSearchQuery
       listenTo(keys)
       reactions += {
         case KeyPressed(_, Key.Enter, _, _) => actionSearch()
@@ -67,6 +71,7 @@ class FullTextTransactionSearchFrame(
 
     def performQuery(): Unit = {
       val query = txtSearchInput.text
+      settings.update(_.copy(lastSearchQuery = query))
       scrollResult.viewportView = new MigPanel {
 
         constraints.gridGap("4px", "2px")
@@ -126,5 +131,11 @@ object FullTextTransactionSearchFrame {
   private val resultColorDescription = new Color(139, 179, 244)
   private val resultColorSource = new Color(192, 209, 237)
   private val resultColorDestination = new Color(5, 44, 107)
+
+  case class Settings(
+    lastSearchQuery: String = ""
+  )
+
+  implicit val settingsFormats: Format[Settings] = Json.format[Settings]
 
 }
