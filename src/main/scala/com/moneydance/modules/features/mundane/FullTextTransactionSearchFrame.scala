@@ -16,11 +16,11 @@ import scala.swing.Swing._
 import scala.swing._
 import scala.swing.event.{Key, KeyPressed, WindowClosed}
 
-class FullTextTransactionSearchWindowScalaSwing(
+class FullTextTransactionSearchFrame(
   context: FeatureModuleContext
 ) extends Frame {frame =>
 
-  import FullTextTransactionSearchWindowScalaSwing._
+  import FullTextTransactionSearchFrame._
 
   title = "Full Text Transaction Search"
   preferredSize = (1000, 600)
@@ -33,8 +33,6 @@ class FullTextTransactionSearchWindowScalaSwing(
   val actionClose = Action("Close")(dispose())
 
   contents = new MigPanel {
-
-    //    constraints
 
     columns
       .grow.fill.gap
@@ -122,7 +120,7 @@ class FullTextTransactionSearchWindowScalaSwing(
 
 }
 
-object FullTextTransactionSearchWindowScalaSwing {
+object FullTextTransactionSearchFrame {
 
   private val resultColorDate = new Color(51, 98, 175)
   private val resultColorDescription = new Color(139, 179, 244)

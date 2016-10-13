@@ -11,7 +11,7 @@ class Main extends FeatureModule {
 
   import Main._
 
-  private val fullTextTransactionSearch = new FrameManager(() => new FullTextTransactionSearchWindowScalaSwing(getContext))
+  private val fullTextTransactionSearch = new FrameManager(() => new FullTextTransactionSearchFrame(getContext))
 
   override def init(): Unit = {
     val context = getContext
