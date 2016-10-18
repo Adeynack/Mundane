@@ -4,15 +4,15 @@ import java.awt.{Font, Image, Toolkit}
 import java.io.ByteArrayOutputStream
 
 import com.github.adeynack.scala.swing.FrameManager
-import com.moneydance.apps.md.controller.{FeatureModule, Main => MdMain}
+import com.moneydance.apps.md.controller.FeatureModule
 import play.api.libs.json._
 
 class Main extends FeatureModule {
 
   import Main._
 
-  private lazy val context = getContext.asInstanceOf[MdMain]
-  private val fullTextTransactionSearch = new FrameManager(() => new FullTextTransactionSearchFrame(context))
+  private implicit lazy val context = getContext
+  private val fullTextTransactionSearch = new FrameManager(() => new FullTextTransactionSearchFrame)
 
   override def init(): Unit = {
     context.registerFeature(this, invokeStr.fullTextSearch, icon, "Full Text Transaction Search")

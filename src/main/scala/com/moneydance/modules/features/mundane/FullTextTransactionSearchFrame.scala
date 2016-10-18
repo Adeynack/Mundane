@@ -5,33 +5,31 @@ import java.awt.Color.{black, white}
 
 import com.github.adeynack.scala.swing.MigPanel
 import com.infinitekind.moneydance.model.ParentTxn
-import com.moneydance.apps.md.controller.{Main => MdMain}
+import com.moneydance.apps.md.controller.FeatureModuleContext
 import com.moneydance.awt.AwtUtil
 import com.moneydance.modules.scalamd.Extensions._
-import com.moneydance.modules.scalamd.JsonFileSetting
+import com.moneydance.modules.scalamd.JsonLocalStorage
 import play.api.libs.json.{Format, Json}
 
 import scala.collection.JavaConverters._
 import scala.swing.FlowPanel.Alignment.{Left, Right}
 import scala.swing.Swing._
 import scala.swing._
-import scala.swing.event.{Key, KeyPressed, WindowClosed}
+import scala.swing.event.{Key, KeyPressed, WindowClosed, WindowClosing}
 
 class FullTextTransactionSearchFrame(
-  implicit private val context: MdMain
+  implicit private val context: FeatureModuleContext
 ) extends Frame {frame =>
 
   import FullTextTransactionSearchFrame._
 
-  val settings = JsonFileSetting(this, Settings())
+  val settings = JsonLocalStorage(this, Settings())
+
+  override def closeOperation(): Unit = dispose()
 
   title = "Full Text Transaction Search"
   preferredSize = (1000, 600)
   AwtUtil.centerWindow(this.peer)
-
-  reactions += {
-    case WindowClosed(_) => dispose()
-  }
 
   val actionClose = Action("Close")(dispose())
 
