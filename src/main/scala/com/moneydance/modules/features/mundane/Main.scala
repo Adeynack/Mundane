@@ -15,7 +15,6 @@ class Main extends FeatureModule {
   private implicit lazy val context = getContext
   private val fullTextTransactionSearch = new FrameManager(() => new FullTextTransactionSearchFrame)
 
-
   override def init(): Unit = {
     context.registerFeature(this, invokeStr.fullTextSearch, icon, "Full Text Transaction Search")
     context.registerFeature(this, invokeStr.accountsToJson, icon, "Export account list to JSON in the clipboard")

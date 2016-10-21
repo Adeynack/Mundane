@@ -15,7 +15,7 @@ import scala.collection.JavaConverters._
 import scala.swing.FlowPanel.Alignment.{Left, Right}
 import scala.swing.Swing._
 import scala.swing._
-import scala.swing.event.{Key, KeyPressed, WindowClosed, WindowClosing}
+import scala.swing.event.{Key, KeyPressed}
 
 class FullTextTransactionSearchFrame(
   implicit private val context: FeatureModuleContext
