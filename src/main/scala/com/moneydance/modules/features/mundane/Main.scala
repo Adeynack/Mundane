@@ -1,23 +1,25 @@
 package com.moneydance.modules.features.mundane
 
-import java.awt.{Font, Image, Toolkit}
+import java.awt.{Image, Toolkit}
 import java.io.ByteArrayOutputStream
 
-import com.github.adeynack.scala.swing.FrameManager
 import com.infinitekind.moneydance.model._
 import com.moneydance.apps.md.controller.FeatureModule
-import play.api.libs.json._
+import com.moneydance.modules.scalamd.SubFeature
+
+import scala.collection.breakOut
 
 class Main extends FeatureModule {
 
-  import Main._
-
-  private implicit lazy val context = getContext
-  private val fullTextTransactionSearch = new FrameManager(() => new FullTextTransactionSearchFrame)
+  private val features: Map[String, SubFeature] = Seq[SubFeature](
+    FullTextTransactionSearch,
+    JsonAccountExport
+  ).map(f => f.invocationKey -> f)(breakOut)
 
   override def init(): Unit = {
-    context.registerFeature(this, invokeStr.fullTextSearch, icon, "Full Text Transaction Search")
-    context.registerFeature(this, invokeStr.accountsToJson, icon, "Export account list to JSON in the clipboard")
+    features.foreach { case (k: String, f: SubFeature) =>
+      getContext.registerFeature(this, k, f.image.getOrElse(icon), f.name)
+    }
   }
 
   private val accountBookListener = new AccountBookListener {
@@ -73,24 +75,10 @@ class Main extends FeatureModule {
     }
   }
 
-  override def invoke(s: String) = s match {
-    case invokeStr.fullTextSearch => fullTextTransactionSearch.show()
-    case invokeStr.accountsToJson => exportToJson()
-  }
-
-  def exportToJson(): Unit = {
-    import com.moneydance.modules.scalamd.MdJsonFormats._
-
-    import scala.swing._
-    new Frame() {
-      contents = new ScrollPane(new TextArea(Json.prettyPrint(Json.toJson(getContext.getRootAccount))) {
-        font = new Font("Courier New", Font.BOLD, 16)
-      })
-      visible = true
-    }
-  }
+  override def invoke(s: String) = features(s).invoke(getContext)
 
   override def handleEvent(appEvent: String): Unit = {
+    val context = getContext
     appEvent match {
       case "md:account:root" =>
         System.err.println(s"Main::handleEvent appEvent = $appEvent")
@@ -102,13 +90,4 @@ class Main extends FeatureModule {
     }
     super.handleEvent(appEvent)
   }
-}
-
-object Main {
-
-  object invokeStr {
-    val fullTextSearch = "fullTextSearch"
-    val accountsToJson = "accountsToJson"
-  }
-
 }

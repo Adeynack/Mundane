@@ -8,7 +8,7 @@ import com.infinitekind.moneydance.model.ParentTxn
 import com.moneydance.apps.md.controller.FeatureModuleContext
 import com.moneydance.awt.AwtUtil
 import com.moneydance.modules.scalamd.Extensions._
-import com.moneydance.modules.scalamd.JsonLocalStorage
+import com.moneydance.modules.scalamd.{JsonLocalStorage, SingletonFrameSubFeature}
 import play.api.libs.json.{Format, Json}
 
 import scala.collection.JavaConverters._
@@ -16,6 +16,14 @@ import scala.swing.FlowPanel.Alignment.{Left, Right}
 import scala.swing.Swing._
 import scala.swing._
 import scala.swing.event.{Key, KeyPressed}
+
+object FullTextTransactionSearch extends SingletonFrameSubFeature[FullTextTransactionSearchFrame] {
+
+  override protected def createFrame(context: FeatureModuleContext) = new FullTextTransactionSearchFrame()(context)
+
+  override def name: String = "Full Text Transaction Search"
+
+}
 
 class FullTextTransactionSearchFrame(
   implicit private val context: FeatureModuleContext
