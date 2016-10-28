@@ -3,18 +3,33 @@ package com.moneydance.modules.scalamd
 import java.awt.Image
 
 import com.moneydance.apps.md.controller.FeatureModuleContext
+import play.api.libs.json.{JsObject, JsValue}
 
 import scala.swing.Frame
 import scala.swing.event.WindowClosed
 
-trait SubFeature { self =>
+trait SubFeature {self =>
 
+  /**
+    * @return the name used for this feature in the GUI.
+    */
   def name: String
 
-  def invocationKey: String = self.getClass.getName
+  /**
+    * @return a string key identifying the feature (inside of Mundane).
+    */
+  def key: String = self.getClass.getName
 
+  /**
+    * @return the image for the feature -or- [[None]] for using a default image.
+    */
   def image: Option[Image] = None
 
+  /**
+    * Activate the functionality of the feature.
+    *
+    * @param context the Moneydance context.
+    */
   def invoke(context: FeatureModuleContext): Unit
 
 }

@@ -7,8 +7,9 @@ import com.github.adeynack.scala.swing.MigPanel
 import com.infinitekind.moneydance.model.ParentTxn
 import com.moneydance.apps.md.controller.FeatureModuleContext
 import com.moneydance.awt.AwtUtil
+import com.moneydance.modules.features.mundane.FullTextTransactionSearch.Settings
 import com.moneydance.modules.scalamd.Extensions._
-import com.moneydance.modules.scalamd.{JsonLocalStorage, SingletonFrameSubFeature}
+import com.moneydance.modules.scalamd.{JsonLocalStorage, SingletonFrameSubFeature, Storage}
 import play.api.libs.json.{Format, Json}
 
 import scala.collection.JavaConverters._
@@ -19,19 +20,26 @@ import scala.swing.event.{Key, KeyPressed}
 
 object FullTextTransactionSearch extends SingletonFrameSubFeature[FullTextTransactionSearchFrame] {
 
-  override protected def createFrame(context: FeatureModuleContext) = new FullTextTransactionSearchFrame()(context)
+  case class Settings(
+    lastSearchQuery: String = ""
+  )
+
+  implicit val settingsFormats: Format[Settings] = Json.format[Settings]
 
   override def name: String = "Full Text Transaction Search"
+
+  override protected def createFrame(context: FeatureModuleContext) = {
+    new FullTextTransactionSearchFrame(context, JsonLocalStorage(this, Settings(), context))
+  }
 
 }
 
 class FullTextTransactionSearchFrame(
-  implicit private val context: FeatureModuleContext
+  private val context: FeatureModuleContext,
+  private val settings: Storage[Settings]
 ) extends Frame {frame =>
 
   import FullTextTransactionSearchFrame._
-
-  val settings = JsonLocalStorage(this, Settings())
 
   override def closeOperation(): Unit = dispose()
 
@@ -137,11 +145,5 @@ object FullTextTransactionSearchFrame {
   private val resultColorDescription = new Color(139, 179, 244)
   private val resultColorSource = new Color(192, 209, 237)
   private val resultColorDestination = new Color(5, 44, 107)
-
-  case class Settings(
-    lastSearchQuery: String = ""
-  )
-
-  implicit val settingsFormats: Format[Settings] = Json.format[Settings]
 
 }

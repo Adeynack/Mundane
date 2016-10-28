@@ -3,16 +3,31 @@ package com.moneydance.modules.scalamd
 import com.moneydance.apps.md.controller.FeatureModuleContext
 import play.api.libs.json._
 
+trait Storage[T] {
+
+  def set(value: T): Unit
+
+  def update(updater: T => T): Unit
+
+  def get: T
+
+}
+
 object JsonLocalStorage {
 
-  def apply[T](source: AnyRef, default: => T)(implicit context: FeatureModuleContext, reads: Reads[T], writes: Writes[T]): JsonLocalStorage[T] = {
-    val key = source.getClass.getName
-    new JsonLocalStorage[T](key, default)
+  def apply[T](source: AnyRef, default: => T, context: FeatureModuleContext)(implicit reads: Reads[T], writes: Writes[T]): JsonLocalStorage[T] = {
+    val key = {
+      val c = source.getClass.getName
+      if (c.endsWith("$")) c.substring(0, c.length - 1)
+      else c
+    }
+    new JsonLocalStorage[T](key, default, context)
   }
 
 }
 
-class JsonLocalStorage[T](val key: String, default: => T)(implicit context: FeatureModuleContext, reads: Reads[T], writes: Writes[T]) {
+class JsonLocalStorage[T](val key: String, default: => T, context: FeatureModuleContext)(implicit reads: Reads[T], writes: Writes[T])
+  extends Storage[T] {
 
   private val localStorage = context.getCurrentAccountBook.getLocalStorage
 
@@ -47,7 +62,7 @@ class JsonLocalStorage[T](val key: String, default: => T)(implicit context: Feat
         }
       }
       .getOrElse {
-        System.out.println(s"""No local storage value found for key "$key". Using default: $default""")
+        System.err.println(s"""No local storage value found for key "$key". Using default: $default""")
         default
       }
   }

@@ -14,7 +14,7 @@ class Main extends FeatureModule {
   private val features: Map[String, SubFeature] = Seq[SubFeature](
     FullTextTransactionSearch,
     JsonAccountExport
-  ).map(f => f.invocationKey -> f)(breakOut)
+  ).map(f => f.key -> f)(breakOut)
 
   override def init(): Unit = {
     features.foreach { case (k: String, f: SubFeature) =>
@@ -90,4 +90,10 @@ class Main extends FeatureModule {
     }
     super.handleEvent(appEvent)
   }
+}
+
+object Main {
+
+  def localStorageKey(suffix: String) = s"Mundage:$suffix"
+
 }
