@@ -7,7 +7,8 @@ import scala.swing._
 
 class MigPanel extends Panel
   with LayoutContainer
-  with SequentialContainer.Wrapper {
+  with SequentialContainer.Wrapper
+  with LCE {
 
   def layoutManager = peer.getLayout.asInstanceOf[MigLayout]
 

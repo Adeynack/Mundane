@@ -2,9 +2,11 @@ package com.moneydance.modules.features.mundane
 
 import java.awt.{Image, Toolkit}
 import java.io.ByteArrayOutputStream
+import javax.swing.SwingUtilities
 
 import com.infinitekind.moneydance.model._
 import com.moneydance.apps.md.controller.FeatureModule
+import com.moneydance.modules.features.mundane.label.ForceLabel
 import com.moneydance.modules.scalamd.SubFeature
 
 import scala.collection.breakOut
@@ -12,6 +14,7 @@ import scala.collection.breakOut
 class Main extends FeatureModule {
 
   private val features: Map[String, SubFeature] = Seq[SubFeature](
+    ForceLabel,
     FullTextTransactionSearch,
     JsonAccountExport
   ).map(f => f.key -> f)(breakOut)
@@ -85,6 +88,12 @@ class Main extends FeatureModule {
         context.getCurrentAccountBook.addListener(accountBookListener)
         context.getCurrentAccountBook.addAccountListener(accountListener)
         context.getCurrentAccountBook.addFileListener(fileListener)
+
+        // todo : Remove this (there for debugging reasons)
+        SwingUtilities.invokeLater(new Runnable {
+          override def run(): Unit = invoke(ForceLabel.key)
+        })
+
       case _ =>
         System.err.println(s"Main::handleEvent appEvent = $appEvent")
     }
@@ -94,6 +103,6 @@ class Main extends FeatureModule {
 
 object Main {
 
-  def localStorageKey(suffix: String) = s"Mundage:$suffix"
+  def localStorageKey(suffix: String) = s"Mundane:$suffix"
 
 }

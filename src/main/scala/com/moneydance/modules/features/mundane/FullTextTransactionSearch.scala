@@ -15,7 +15,7 @@ import play.api.libs.json.{Format, Json}
 import scala.collection.JavaConverters._
 import scala.swing.FlowPanel.Alignment.{Left, Right}
 import scala.swing.Swing._
-import scala.swing._
+import scala.swing.{FlowPanel, _}
 import scala.swing.event.{Key, KeyPressed}
 
 object FullTextTransactionSearch extends SingletonFrameSubFeature[FullTextTransactionSearchFrame] {
@@ -26,10 +26,13 @@ object FullTextTransactionSearch extends SingletonFrameSubFeature[FullTextTransa
 
   implicit val settingsFormats: Format[Settings] = Json.format[Settings]
 
-  override def name: String = "Full Text Transaction Search"
+  override def name = "Full Text Transaction Search"
 
   override protected def createFrame(context: FeatureModuleContext) = {
-    new FullTextTransactionSearchFrame(context, JsonLocalStorage(this, Settings(), context))
+    new FullTextTransactionSearchFrame(
+      context,
+      new JsonLocalStorage(Main.localStorageKey("FullTextTransactionSearch"), Settings(), context)
+    )
   }
 
 }
@@ -41,7 +44,10 @@ class FullTextTransactionSearchFrame(
 
   import FullTextTransactionSearchFrame._
 
-  override def closeOperation(): Unit = dispose()
+  override def closeOperation(): Unit = {
+    dispose()
+    super.closeOperation()
+  }
 
   title = "Full Text Transaction Search"
   preferredSize = (1000, 600)
@@ -78,10 +84,9 @@ class FullTextTransactionSearchFrame(
     val scrollResult = new ScrollPane(new MigPanel())
     layout(scrollResult) = cc.spanX.wrap
 
-    val pnlButtons = new FlowPanel(Right)(
+    layout(new FlowPanel(Right)(
       new Button(actionClose)
-    )
-    layout(pnlButtons) = cc.spanX
+    )) = cc.spanX
 
     def performQuery(): Unit = {
       val query = txtSearchInput.text

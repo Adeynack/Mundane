@@ -13,19 +13,6 @@ trait Storage[T] {
 
 }
 
-object JsonLocalStorage {
-
-  def apply[T](source: AnyRef, default: => T, context: FeatureModuleContext)(implicit reads: Reads[T], writes: Writes[T]): JsonLocalStorage[T] = {
-    val key = {
-      val c = source.getClass.getName
-      if (c.endsWith("$")) c.substring(0, c.length - 1)
-      else c
-    }
-    new JsonLocalStorage[T](key, default, context)
-  }
-
-}
-
 class JsonLocalStorage[T](val key: String, default: => T, context: FeatureModuleContext)(implicit reads: Reads[T], writes: Writes[T])
   extends Storage[T] {
 
