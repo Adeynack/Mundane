@@ -3,12 +3,11 @@ package com.moneydance.modules.features.mundane.label
 import com.github.adeynack.scala.swing.{LCE, MigPanel}
 import com.moneydance.awt.AwtUtil
 import com.moneydance.modules.scalamd.Storage
-import net.miginfocom.swing.MigLayout
 
 import scala.swing.BorderPanel.Position
 import scala.swing.FlowPanel.Alignment
 import scala.swing.Swing._
-import scala.swing.{Action, BorderPanel, Button, FlowPanel, Frame, ListView, Table}
+import scala.swing.{Action, BorderPanel, Button, FlowPanel, Frame, Label, ListView, Table}
 
 class ForceLabelSettingsFrame(
   settings: Storage[ForceLabelSettings]
@@ -23,20 +22,22 @@ class ForceLabelSettingsFrame(
 
   contents = new MigPanel {
 
-//    constraints.debug
-
     columns
       .size("30%").fill.gap
       .grow.fill
 
     rows
+      .shrink.fill.gap
       .grow.fill.gap
-      .shrink
+      .shrink.fill
 
     val actionNew = Action("New")(addConfiguration())
     val actionRename = Action("Rename")(renameConfiguration())
     val actionDelete = Action("Delete")(removeConfiguration())
     val actionRun = Action("Run")(runConfiguration())
+
+    lay -- cc -- new Label("Configurations")
+    lay -- cc.wrap -- new Label("Labels")
 
     val configurationList = lay -- cc -- new ListView[String]
     fillConfigurationList()
