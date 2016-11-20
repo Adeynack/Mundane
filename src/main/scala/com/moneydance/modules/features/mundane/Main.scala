@@ -89,6 +89,7 @@ class Main extends FeatureModule {
         context.getCurrentAccountBook.addAccountListener(accountListener)
         context.getCurrentAccountBook.addFileListener(fileListener)
 
+      case "md:file:opened" =>
         // todo : Remove this (there for debugging reasons)
         SwingUtilities.invokeLater(new Runnable {
           override def run(): Unit = invoke(ForceLabel.key)
