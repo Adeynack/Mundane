@@ -35,6 +35,7 @@ object ForceLabel extends SingletonFrameSubFeature[Frame] {
 
   override protected def createFrame(context: FeatureModuleContext): Frame = {
     new ForceLabelSettingsFrame(
+      context,
       new JsonLocalStorage[ForceLabelSettings](Main.localStorageKey("ForceLabel"), ForceLabelSettings(), context)
     )
   }
