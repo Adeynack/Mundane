@@ -21,11 +21,11 @@ object Extensions {
 
   implicit class TxnExtensions(val transaction: Txn) extends AnyVal {
 
-    def getDateEnteredLD = mdLongDateToLocalDate(transaction.getDateEntered)
+    def getDateEnteredLD: LocalDate = mdLongDateToLocalDate(transaction.getDateEntered)
 
-    def getDateLD = mdIntDateToLocalDate(transaction.getDateInt)
+    def getDateLD: LocalDate = mdIntDateToLocalDate(transaction.getDateInt)
 
-    def getTaxDateLD = mdIntDateToLocalDate(transaction.getTaxDateInt)
+    def getTaxDateLD: LocalDate = mdIntDateToLocalDate(transaction.getTaxDateInt)
 
   }
 

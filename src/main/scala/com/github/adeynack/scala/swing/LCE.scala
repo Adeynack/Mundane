@@ -19,9 +19,9 @@ trait LCE {self: LayoutContainer =>
 
   class layObj() {
 
-    @inline def --(constraints: Constraints) = at(constraints)
+    @inline def --(constraints: Constraints): aObj = at(constraints)
 
-    @inline def at(constraints: Constraints) = new aObj(constraints)
+    @inline def at(constraints: Constraints): aObj = new aObj(constraints)
 
     class aObj(val constraints: Constraints) {
 

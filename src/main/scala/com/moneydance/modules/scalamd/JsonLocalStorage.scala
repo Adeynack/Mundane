@@ -35,35 +35,33 @@ class JsonLocalStorage[T](val key: String, default: => T, context: FeatureModule
     }
   }
 
-  def get: T = {
-    if (cached.isEmpty) {
-      cached = Some {
-        Option(localStorage.getString(key, null))
-          .map { content =>
-            val contentJsVal = Json.parse(content)
-            contentJsVal.validate[T] match {
-              case JsSuccess(value, path) =>
-                System.err.println(s"""Loaded local storage from key "$key". Read value ${Json.prettyPrint(contentJsVal)}""")
-                value
-              case JsError(failedPaths) =>
-                System.err.println(s"""Failed to parse setting from local storage under key "$key" with value ${Json.prettyPrint(contentJsVal)}""")
-                failedPaths.foreach { case (path, validationErrors) =>
-                  System.err.println(s"""  For JSON path "$path":""")
-                  validationErrors.foreach { validationError =>
-                    System.err.println(s"""    $validationError""")
-                  }
+  def get: T = cached.getOrElse {
+    val storageValue =
+      Option(localStorage.getString(key, null))
+        .map { content =>
+          val contentJsVal = Json.parse(content)
+          contentJsVal.validate[T] match {
+            case JsSuccess(value, _) =>
+              System.err.println(s"""Loaded local storage from key "$key". Read value ${Json.prettyPrint(contentJsVal)}""")
+              value
+            case JsError(failedPaths) =>
+              System.err.println(s"""Failed to parse setting from local storage under key "$key" with value ${Json.prettyPrint(contentJsVal)}""")
+              failedPaths.foreach { case (path, validationErrors) =>
+                System.err.println(s"""  For JSON path "$path":""")
+                validationErrors.foreach { validationError =>
+                  System.err.println(s"""    $validationError""")
                 }
-                System.err.println(s"""  Using default: $default""")
-                default
-            }
+              }
+              System.err.println(s"""  Using default: $default""")
+              default
           }
-          .getOrElse {
-            System.err.println(s"""No local storage value found for key "$key". Using default: $default""")
-            default
-          }
-      }
-    }
-    cached.get
+        }
+        .getOrElse {
+          System.err.println(s"""No local storage value found for key "$key". Using default: $default""")
+          default
+        }
+    cached = Some(storageValue)
+    storageValue
   }
 
 }

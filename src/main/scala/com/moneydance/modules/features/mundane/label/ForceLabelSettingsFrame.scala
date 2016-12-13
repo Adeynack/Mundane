@@ -1,16 +1,19 @@
 package com.moneydance.modules.features.mundane.label
 
-import scala.collection.JavaConverters._
 import com.github.adeynack.scala.swing.{LCE, MigPanel}
 import com.infinitekind.moneydance.model.TxnUtil
 import com.moneydance.apps.md.controller.FeatureModuleContext
 import com.moneydance.awt.AwtUtil
 import com.moneydance.modules.scalamd.Storage
 
+import scala.collection.JavaConverters._
+import scala.collection.mutable
 import scala.swing.BorderPanel.Position
 import scala.swing.FlowPanel.Alignment
+import scala.swing.ListView.IntervalMode
 import scala.swing.Swing._
-import scala.swing.{Action, BorderPanel, Button, Dialog, FlowPanel, Frame, Label, ListView, Table}
+import scala.swing.event.{ButtonClicked, ListSelectionChanged, WindowClosed, WindowClosing}
+import scala.swing.{Action, BorderPanel, BoxPanel, Button, CheckBox, FlowPanel, Frame, Label, ListView, Orientation}
 
 class ForceLabelSettingsFrame(
   context: FeatureModuleContext,
@@ -24,6 +27,13 @@ class ForceLabelSettingsFrame(
 
   private val actionClose = Action("Close")(dispose())
   private var additionalLabel = Set.empty[String]
+  private val configurations: mutable.Map[String, mutable.Set[String]] = {
+    val values = settings.get.configurations.map { c =>
+      val labels = c.labels.toSeq
+      c.name -> mutable.Set(labels: _*)
+    }
+    mutable.Map(values: _*)
+  }
 
   contents = new MigPanel { rootPane =>
 
@@ -50,11 +60,16 @@ class ForceLabelSettingsFrame(
       new Button(actionNewLabel)
     )
 
-    val configurationList = lay -- cc -- new ListView[String]
-    fillConfigurationList()
+    val configurationList = lay -- cc -- new ListView[String] {
+      selection.intervalMode = IntervalMode.Single
+      listenTo(selection)
+      reactions += {
+        case ListSelectionChanged(_, _, _) =>
+          fillLabelList()
+      }
+    }
 
-    val labelList = lay -- cc.wrap -- new ListView[String]
-    fillLabelList()
+    val labelList = lay -- cc.wrap -- new BoxPanel(Orientation.Vertical)
 
     lay -- cc.spanX -- new BorderPanel with LCE {
       lay -- Position.West -- new FlowPanel(Alignment.Left)(
@@ -70,17 +85,44 @@ class ForceLabelSettingsFrame(
       )
     }
 
+    fillConfigurationList()
+
     def fillConfigurationList(): Unit = {
-      configurationList.listData = settings.get.configurations.map(_.name)
+      configurationList.listData = configurations.keys.toSeq
+      if (configurationList.listData.nonEmpty) {
+        configurationList.selectIndices(1)
+      } else {
+        fillLabelList()
+      }
     }
 
-    def fillLabelList() = labelList.listData = {
-      val existing = TxnUtil.getListOfAllUsedTransactionTags(context.getCurrentAccountBook.getTransactionSet.getAllTxns).asScala.toSet
-      val toDisplay = existing ++ additionalLabel
-      toDisplay.toSeq.sorted
+    def fillLabelList(): Unit = {
+      labelList.contents.clear()
+      configurationList.selection.items.headOption.foreach { configName =>
+        configurations.get(configName).foreach { selectedLabels =>
+          val transactions = context.getCurrentAccountBook.getTransactionSet.getAllTxns
+          val existing = TxnUtil.getListOfAllUsedTransactionTags(transactions).asScala.toSet
+          val labelCheckboxes = (existing ++ additionalLabel).toSeq.sorted.map { label =>
+            new CheckBox(label) {
+              selected = selectedLabels.contains(label)
+              reactions += {
+                case ButtonClicked(_) =>
+                  if (selected) {
+                    configurations(configName).add(label)
+                  } else {
+                    configurations(configName).remove(label)
+                  }
+                  saveSettings()
+              }
+            }
+          }
+          labelList.contents.appendAll(labelCheckboxes)
+          pack()
+        }
+      }
     }
 
-    def newAdditionalLabel() = {
+    def newAdditionalLabel(): Unit = {
       // todo Dialog.showInput(rootPane., "Name of the new label", "Add a label")
     }
 
@@ -91,6 +133,15 @@ class ForceLabelSettingsFrame(
     def renameConfiguration(): Unit = ???
 
     def runConfiguration(): Unit = ???
+  }
+
+  private def saveSettings(): Unit = {
+    settings.update(_.copy(
+      configurations = configurations.map {
+        case (name, labels) =>
+          ForceLabelConfiguration(name, labels.toSet)
+      }.toSeq
+    ))
   }
 
   title = ForceLabel.name
