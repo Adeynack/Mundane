@@ -14,6 +14,16 @@ Otherwise, do it manually:
 - Download the Moneydance development kit following this link: [moneydance-devkit-4.0](http://infinitekind-downloads.s3.amazonaws.com/moneydance-devkit-4.0.tar.gz). The direct link may change, so refer to [Moneydance developper section](http://infinitekind.com/developer) on their website.
 - Extract it at the root of this project under the same name (without the extension)
 
+### Create a local moneydance-dev maven artifact
+
+
+In order to use `SBT` and its `assembly` plugin correctly, the dependency
+on the `moneydance-dev` must be specified as all other dependencies are:
+with ivy2 (maven) entries. In order to make that possible, 
+
+
+    mvn install:install-file -Dfile=moneydance-devkit-4.0/lib/moneydance-dev.jar -DgroupId=com.moneydance -DartifactId=moneydance-dev -Dversion=4.0 -Dpackaging=jar
+
 ### Generate keys
 
 Simple execute this and enter a pass phrase you will remember. It will be needed every time you build the extension. 
