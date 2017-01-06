@@ -1,19 +1,22 @@
 package com.moneydance.modules.features.mundane.label
 
+import java.awt.Color
+
 import com.github.adeynack.scala.swing.{LCE, MigPanel}
 import com.infinitekind.moneydance.model.TxnUtil
 import com.moneydance.apps.md.controller.FeatureModuleContext
 import com.moneydance.awt.AwtUtil
 import com.moneydance.modules.scalamd.Storage
+import net.miginfocom.layout.CC
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable
+import scala.language.postfixOps
 import scala.swing.BorderPanel.Position
 import scala.swing.FlowPanel.Alignment
 import scala.swing.ListView.IntervalMode
 import scala.swing.Swing._
-import scala.swing.event.{ButtonClicked, ListSelectionChanged, WindowClosed, WindowClosing}
-import scala.swing.{Action, BorderPanel, BoxPanel, Button, CheckBox, FlowPanel, Frame, Label, ListView, Orientation}
+import scala.swing.event.{ButtonClicked, ListSelectionChanged}
+import scala.swing.{Action, BorderPanel, BoxPanel, Button, CheckBox, Color, FlowPanel, Frame, Label, ListView, Orientation, TextField}
 
 class ForceLabelSettingsFrame(
   context: FeatureModuleContext,
@@ -26,13 +29,13 @@ class ForceLabelSettingsFrame(
   }
 
   private val actionClose = Action("Close")(dispose())
-  private var additionalLabel = Set.empty[String]
-  private val configurations: mutable.Map[String, mutable.Set[String]] = {
-    val values = settings.get.configurations.map { c =>
-      val labels = c.labels.toSeq
-      c.name -> mutable.Set(labels: _*)
-    }
-    mutable.Map(values: _*)
+
+  private var additionalLabels = Set.empty[String]
+
+  private var configurationMap: Map[String, Set[String]] = {
+    settings.get.configurations.map {
+      case ForceLabelConfiguration(name, labels) => name -> labels
+    } toMap
   }
 
   contents = new MigPanel { rootPane =>
@@ -69,7 +72,10 @@ class ForceLabelSettingsFrame(
       }
     }
 
-    val labelList = lay -- cc.wrap -- new BoxPanel(Orientation.Vertical)
+    val labelList = lay -- cc.wrap -- new MigPanel {
+      columns.align("left")
+      background = Color.blue
+    }
 
     lay -- cc.spanX -- new BorderPanel with LCE {
       lay -- Position.West -- new FlowPanel(Alignment.Left)(
@@ -88,7 +94,7 @@ class ForceLabelSettingsFrame(
     fillConfigurationList()
 
     def fillConfigurationList(): Unit = {
-      configurationList.listData = configurations.keys.toSeq
+      configurationList.listData = configurationMap.keys.toSeq
       if (configurationList.listData.nonEmpty) {
         configurationList.selectIndices(1)
       } else {
@@ -99,24 +105,33 @@ class ForceLabelSettingsFrame(
     def fillLabelList(): Unit = {
       labelList.contents.clear()
       configurationList.selection.items.headOption.foreach { configName =>
-        configurations.get(configName).foreach { selectedLabels =>
+        configurationMap.get(configName).foreach { selectedLabels =>
           val transactions = context.getCurrentAccountBook.getTransactionSet.getAllTxns
           val existing = TxnUtil.getListOfAllUsedTransactionTags(transactions).asScala.toSet
-          val labelCheckboxes = (existing ++ additionalLabel).toSeq.sorted.map { label =>
+          val labelCheckboxes = (existing ++ additionalLabels).toSeq.sorted.map { label =>
             new CheckBox(label) {
               selected = selectedLabels.contains(label)
               reactions += {
                 case ButtonClicked(_) =>
+                  val actual = configurationMap(configName)
                   if (selected) {
-                    configurations(configName).add(label)
+                    configurationMap += (configName -> (actual + label))
                   } else {
-                    configurations(configName).remove(label)
+                    configurationMap += (configName -> (actual - label))
                   }
                   saveSettings()
               }
             }
           }
-          labelList.contents.appendAll(labelCheckboxes)
+          //          labelList.contents.appendAll(labelCheckboxes)
+          //          labelList.contents.append(new FlowPanel(Alignment.Left)(
+          labelCheckboxes.foreach(cb => labelList.add(cb, new CC().wrap))
+          labelList.add(new FlowPanel(Alignment.Left)(
+            new TextField() {
+              this.preferredSize = (200, this.preferredSize.height)
+            },
+            new Button()
+          ), new CC().wrap)
           pack()
         }
       }
@@ -136,11 +151,12 @@ class ForceLabelSettingsFrame(
   }
 
   private def saveSettings(): Unit = {
+    val configurationSeq = configurationMap.map {
+      case (name, labels) =>
+        ForceLabelConfiguration(name, labels)
+    }.toSeq
     settings.update(_.copy(
-      configurations = configurations.map {
-        case (name, labels) =>
-          ForceLabelConfiguration(name, labels.toSet)
-      }.toSeq
+      configurations = configurationSeq
     ))
   }
 

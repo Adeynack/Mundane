@@ -78,7 +78,7 @@ class Main extends FeatureModule {
     }
   }
 
-  override def invoke(s: String) = features(s).invoke(getContext)
+  override def invoke(s: String): Unit = features(s).invoke(getContext)
 
   override def handleEvent(appEvent: String): Unit = {
     val context = getContext

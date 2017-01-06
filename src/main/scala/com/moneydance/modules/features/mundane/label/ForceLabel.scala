@@ -31,7 +31,7 @@ object ForceLabel extends SingletonFrameSubFeature[Frame] {
 
   implicit val forceLabelSettingsFormat = Json.format[ForceLabelSettings]
 
-  override def name = "Force Label"
+  override val name = "Force Label"
 
   override protected def createFrame(context: FeatureModuleContext): Frame = {
     new ForceLabelSettingsFrame(

@@ -15,8 +15,8 @@ import play.api.libs.json.{Format, Json}
 import scala.collection.JavaConverters._
 import scala.swing.FlowPanel.Alignment.{Left, Right}
 import scala.swing.Swing._
-import scala.swing.{FlowPanel, _}
 import scala.swing.event.{Key, KeyPressed}
+import scala.swing.{FlowPanel, _}
 
 object FullTextTransactionSearch extends SingletonFrameSubFeature[FullTextTransactionSearchFrame] {
 
@@ -28,19 +28,17 @@ object FullTextTransactionSearch extends SingletonFrameSubFeature[FullTextTransa
 
   override def name = "Full Text Transaction Search"
 
-  override protected def createFrame(context: FeatureModuleContext) = {
-    new FullTextTransactionSearchFrame(
-      context,
-      new JsonLocalStorage(Main.localStorageKey("FullTextTransactionSearch"), Settings(), context)
-    )
-  }
+  override protected def createFrame(context: FeatureModuleContext) = new FullTextTransactionSearchFrame(
+    context,
+    new JsonLocalStorage(Main.localStorageKey("FullTextTransactionSearch"), Settings(), context)
+  )
 
 }
 
 class FullTextTransactionSearchFrame(
   private val context: FeatureModuleContext,
   private val settings: Storage[Settings]
-) extends Frame {frame =>
+) extends Frame {
 
   import FullTextTransactionSearchFrame._
 
