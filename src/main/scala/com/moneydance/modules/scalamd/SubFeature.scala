@@ -1,14 +1,12 @@
 package com.moneydance.modules.scalamd
 
 import java.awt.Image
+import java.awt.event.{WindowAdapter, WindowEvent}
+import javax.swing.JFrame
 
 import com.moneydance.apps.md.controller.FeatureModuleContext
-import play.api.libs.json.{JsObject, JsValue}
 
-import scala.swing.Frame
-import scala.swing.event.WindowClosed
-
-trait SubFeature {self =>
+trait SubFeature { self =>
 
   /**
     * @return the name used for this feature in the GUI.
@@ -34,7 +32,9 @@ trait SubFeature {self =>
 
 }
 
-abstract class SingletonFrameSubFeature[F <: Frame] extends SubFeature {
+abstract class SingletonFrameSubFeature[F <: JFrame] extends SubFeature {
+
+  private val lock = new Object
 
   protected def createFrame(context: FeatureModuleContext): F
 
@@ -42,26 +42,26 @@ abstract class SingletonFrameSubFeature[F <: Frame] extends SubFeature {
 
   protected def frame: Option[F] = _frame
 
-  override def invoke(context: FeatureModuleContext): Unit = this.synchronized {
+  override def invoke(context: FeatureModuleContext): Unit = lock.synchronized {
     if (_frame.isEmpty) {
       _frame = Some {
         val f = createFrame(context)
-        f.reactions += {
-          case WindowClosed(_) => this.synchronized(_frame = None)
-        }
+        f.addWindowListener(new WindowAdapter {
+          override def windowClosed(e: WindowEvent): Unit = lock.synchronized(_frame = None)
+        })
         f
       }
     }
     _frame.foreach { f =>
-      f.visible = true
-      f.peer.toFront()
-      f.peer.requestFocus()
+      f.setVisible(true)
+      f.toFront()
+      f.requestFocus()
     }
   }
 
-  def close(): Unit = this.synchronized {
+  def close(): Unit = lock.synchronized {
     _frame.foreach { f =>
-      f.visible = false
+      f.setVisible(false)
       f.dispose()
     }
     _frame = None

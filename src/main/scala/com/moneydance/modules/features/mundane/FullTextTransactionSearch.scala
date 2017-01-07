@@ -1,22 +1,23 @@
 package com.moneydance.modules.features.mundane
 
-import java.awt.Color
 import java.awt.Color.{black, white}
+import java.awt.event.{KeyAdapter, KeyEvent}
+import java.awt.{Color, FlowLayout}
+import javax.swing.WindowConstants.DISPOSE_ON_CLOSE
+import javax.swing._
 
-import com.github.adeynack.scala.swing.MigPanel
+import com.github.adeynack.scala.swing.SimpleAction
 import com.infinitekind.moneydance.model.ParentTxn
+import com.infinitekind.util.DateUtil
 import com.moneydance.apps.md.controller.FeatureModuleContext
 import com.moneydance.awt.AwtUtil
 import com.moneydance.modules.features.mundane.FullTextTransactionSearch.Settings
-import com.moneydance.modules.scalamd.Extensions._
 import com.moneydance.modules.scalamd.{JsonLocalStorage, SingletonFrameSubFeature, Storage}
+import net.miginfocom.layout.{AC, CC, LC}
+import net.miginfocom.swing.MigLayout
 import play.api.libs.json.{Format, Json}
 
 import scala.collection.JavaConverters._
-import scala.swing.FlowPanel.Alignment.{Left, Right}
-import scala.swing.Swing._
-import scala.swing.event.{Key, KeyPressed}
-import scala.swing.{FlowPanel, _}
 
 object FullTextTransactionSearch extends SingletonFrameSubFeature[FullTextTransactionSearchFrame] {
 
@@ -38,106 +39,104 @@ object FullTextTransactionSearch extends SingletonFrameSubFeature[FullTextTransa
 class FullTextTransactionSearchFrame(
   private val context: FeatureModuleContext,
   private val settings: Storage[Settings]
-) extends Frame {
+) extends JFrame {
 
   import FullTextTransactionSearchFrame._
 
-  override def closeOperation(): Unit = {
-    dispose()
-    super.closeOperation()
-  }
+  setDefaultCloseOperation(DISPOSE_ON_CLOSE)
+  setTitle("Full Text Transaction Search")
 
-  title = "Full Text Transaction Search"
-  preferredSize = (1000, 600)
-  AwtUtil.centerWindow(this.peer)
+  private val actionClose = SimpleAction("Close")(dispose)
+  private val actionSearch = SimpleAction("Search")(performQuery)
 
-  val actionClose = Action("Close")(dispose())
-
-  contents = new MigPanel {
-
-    columns
+  private val content = new JPanel(new MigLayout(
+    new LC(),
+    new AC()
       .grow.fill.gap
-      .shrink
-
-    rows
+      .shrink,
+    new AC()
       .shrink.gap
       .grow.fill.gap
       .shrink
+  ))
 
-    val actionSearch = Action("Search")(performQuery())
+  private val txtSearchInput = new JTextField()
+  txtSearchInput.setText(settings.get.lastSearchQuery)
+  txtSearchInput.setAction(actionSearch)
+  txtSearchInput.addKeyListener(TxtSearchInputKeyListener)
+  content.add(txtSearchInput)
 
-    val txtSearchInput = new TextField {
-      text = settings.get.lastSearchQuery
-      listenTo(keys)
-      reactions += {
-        case KeyPressed(_, Key.Enter, _, _) => actionSearch()
-        case KeyPressed(_, Key.Escape, _, _) => actionClose()
-      }
-    }
-    layout(txtSearchInput) = cc
+  private val btnSearch = new JButton(actionSearch)
+  content.add(btnSearch, new CC().wrap)
 
-    val btnSearch = new Button(actionSearch)
-    layout(btnSearch) = cc.wrap
+  private val scrResults = new JScrollPane(new JPanel())
+  content.add(scrResults, new CC().spanX.wrap)
 
-    val scrollResult = new ScrollPane(new MigPanel())
-    layout(scrollResult) = cc.spanX.wrap
+  private val pnlButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT))
+  pnlButtons.add(new JButton(actionClose))
+  content.add(pnlButtons, new CC().spanX.wrap)
 
-    layout(new FlowPanel(Right)(
-      new Button(actionClose)
-    )) = cc.spanX
+  setContentPane(content)
+  setSize(1000, 600)
+  AwtUtil.centerWindow(this)
 
-    def performQuery(): Unit = {
-      val query = txtSearchInput.text
-      settings.update(_.copy(lastSearchQuery = query))
-      scrollResult.viewportView = new MigPanel {
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        constraints.gridGap("4px", "2px")
+  private object TxtSearchInputKeyListener extends KeyAdapter {
 
-        context.getCurrentAccountBook.getTransactionSet.asScala
-          .collect { case t: ParentTxn => t }
-          .filter { t =>
-            t.getDescription.contains(query) ||
-            t.getAttachmentKeys.asScala.exists(_.contains(query)) ||
-            t.hasKeywordSubstring(query, false)
-          }
-          .foreach { t =>
-
-            layout(new Label {
-              text = t.getDateLD.toString
-              opaque = true
-              background = resultColorDate
-              foreground = white
-            }) = cc.growX
-
-            layout(new Label {
-              text = t.getDescription
-              opaque = true
-              background = resultColorDescription
-              foreground = black
-            }) = cc
-
-            layout(new Label {
-              text = t.getAccount.getFullAccountName
-              opaque = true
-              background = resultColorSource
-              foreground = black
-            }) = cc
-
-            layout(new FlowPanel(Left)(
-              Iterator.tabulate(t.getSplitCount)(t.getSplit).map { split =>
-                new Label {
-                  text = s"${split.getAmount / 100.0} to ${split.getAccount.getFullAccountName}"
-                  opaque = true
-                  background = resultColorDestination
-                  foreground = white
-                }
-              }.toSeq: _*
-            )) = cc.growX.wrap
-
-          }
-      }
+    override def keyPressed(e: KeyEvent): Unit = e.getKeyCode match {
+      case KeyEvent.VK_ESCAPE => actionClose()
+      case _ =>
     }
 
+  }
+
+  private def performQuery(): Unit = {
+    val query = txtSearchInput.getText
+    settings.update(_.copy(lastSearchQuery = query))
+    val panResults = new JPanel(new MigLayout(
+      new LC().gridGap("4px", "2px"),
+      new AC(),
+      new AC()
+    ))
+    context.getCurrentAccountBook.getTransactionSet.asScala
+      .collect { case t: ParentTxn => t }
+      .filter { (t: ParentTxn) =>
+        t.getDescription.contains(query) ||
+        t.getAttachmentKeys.asScala.exists(_.contains(query)) ||
+        t.hasKeywordSubstring(query, false)
+      }
+      .foreach { (t: ParentTxn) =>
+
+        var l = new JLabel(DateUtil.convertIntDateToLong(t.getDateInt).toString)
+        l.setOpaque(true)
+        l.setBackground(resultColorDate)
+        l.setForeground(white)
+        panResults.add(l, new CC().growX)
+
+        l = new JLabel(t.getDescription)
+        l.setOpaque(true)
+        l.setBackground(resultColorDescription)
+        l.setForeground(black)
+        panResults.add(l)
+
+        l = new JLabel(t.getAccount.getFullAccountName)
+        l.setOpaque(true)
+        l.setBackground(resultColorSource)
+        l.setForeground(black)
+        panResults.add(l)
+
+        val panSplits = new JPanel(new FlowLayout(FlowLayout.LEFT))
+        Iterator.tabulate(t.getSplitCount)(t.getSplit).foreach { split =>
+          val l = new JLabel(s"${split.getAmount / 100.0} to ${split.getAccount.getFullAccountName}")
+          l.setOpaque(true)
+          l.setBackground(resultColorDestination)
+          l.setForeground(white)
+          panSplits.add(l)
+        }
+        panResults.add(panSplits, new CC().growX.wrap)
+      }
+    scrResults.setViewportView(panResults)
   }
 
 }

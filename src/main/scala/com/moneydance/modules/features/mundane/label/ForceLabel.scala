@@ -5,8 +5,6 @@ import com.moneydance.modules.features.mundane.Main
 import com.moneydance.modules.scalamd.{JsonLocalStorage, SingletonFrameSubFeature}
 import play.api.libs.json.Json
 
-import scala.swing.Frame
-
 /**
   * One single configuration for the Force Label feature.
   *
@@ -25,7 +23,7 @@ case class ForceLabelSettings(
   configurations: Seq[ForceLabelConfiguration] = Seq.empty
 )
 
-object ForceLabel extends SingletonFrameSubFeature[Frame] {
+object ForceLabel extends SingletonFrameSubFeature[ForceLabelSettingsFrame] {
 
   implicit val forceLabelConfigurationFormat = Json.format[ForceLabelConfiguration]
 
@@ -33,7 +31,7 @@ object ForceLabel extends SingletonFrameSubFeature[Frame] {
 
   override val name = "Force Label"
 
-  override protected def createFrame(context: FeatureModuleContext): Frame = {
+  override protected def createFrame(context: FeatureModuleContext): ForceLabelSettingsFrame = {
     new ForceLabelSettingsFrame(
       context,
       new JsonLocalStorage[ForceLabelSettings](Main.localStorageKey("ForceLabel"), ForceLabelSettings(), context)

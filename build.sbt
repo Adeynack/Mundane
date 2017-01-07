@@ -4,8 +4,6 @@ crossPaths := false
 
 resolvers += "Local Maven Repository" at s"file://${Path.userHome.absolutePath}/.m2/repository"
 
-lazy val scalaSwing = RootProject(uri("https://github.com/scala/scala-swing.git"))
-
 lazy val mundane = project.in(file("."))
   .settings(
     name := "mundane",
@@ -31,5 +29,3 @@ lazy val mundane = project.in(file("."))
     assemblyJarName in assembly := "mundane.jar", // has to be synched with sbt.jar.name in build.xml
     test in assembly := {}
   )
-  .dependsOn(scalaSwing)
-
