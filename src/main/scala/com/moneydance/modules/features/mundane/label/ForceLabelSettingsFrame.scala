@@ -1,13 +1,13 @@
 package com.moneydance.modules.features.mundane.label
 
-import java.awt.event.{ActionEvent, ActionListener}
+import java.awt.event.{ActionEvent, ActionListener, WindowAdapter, WindowEvent}
 import java.awt.{BorderLayout, Dimension, FlowLayout}
 import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.WindowConstants.DISPOSE_ON_CLOSE
 import javax.swing._
 import javax.swing.event.{ListSelectionEvent, ListSelectionListener}
 
-import com.github.adeynack.scala.swing.SimpleAction
+import com.github.adeynack.scala.swing.{CheckBoxList, SimpleAction}
 import com.infinitekind.moneydance.model.TxnUtil
 import com.moneydance.apps.md.controller.FeatureModuleContext
 import com.moneydance.awt.AwtUtil
@@ -23,6 +23,8 @@ class ForceLabelSettingsFrame(
 ) extends JFrame { frame =>
 
   setDefaultCloseOperation(DISPOSE_ON_CLOSE)
+
+  addWindowListener(ThisWindowListener)
 
   private var configurationMap: Map[String, Set[String]] = {
     settings.get.configurations.map {
@@ -60,17 +62,11 @@ class ForceLabelSettingsFrame(
 
   private val lstConfigurations = new JList[String]
   lstConfigurations.setSelectionMode(SINGLE_SELECTION)
-  lstConfigurations.addListSelectionListener(new ListSelectionListener {
-    override def valueChanged(e: ListSelectionEvent): Unit = fillLabelList()
-  })
+  lstConfigurations.addListSelectionListener(LstConfigurationListSelectionListener)
   content.add(new JScrollPane(lstConfigurations))
 
-  private val panLabelsList = new JPanel(new MigLayout(
-    new LC(),
-    new AC().align("left"),
-    new AC()
-  ))
-  content.add(new JScrollPane(panLabelsList), new CC().wrap)
+  private val lstLabels = new CheckBoxList()
+  content.add(new JScrollPane(lstLabels), new CC().wrap)
 
   content.add(new JPanel(new BorderLayout()) {
 
@@ -109,6 +105,16 @@ class ForceLabelSettingsFrame(
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  private object ThisWindowListener extends WindowAdapter {
+    override def windowClosed(e: WindowEvent): Unit = {
+      saveSettings()
+    }
+  }
+
+  private object LstConfigurationListSelectionListener extends ListSelectionListener {
+    override def valueChanged(e: ListSelectionEvent): Unit = fillLabelList()
+  }
+
   private def fillConfigurationList(): Unit = {
     val configurationNames = configurationMap.keys.toArray
     lstConfigurations.setListData(configurationNames)
@@ -120,14 +126,14 @@ class ForceLabelSettingsFrame(
   }
 
   private def fillLabelList(): Unit = {
-    panLabelsList.removeAll()
     val selected = Option(lstConfigurations.getSelectedValue)
     actionRefreshLabels.setEnabled(selected.nonEmpty)
     selected.foreach { configName =>
       configurationMap.get(configName).foreach { selectedLabels =>
         val transactions = context.getCurrentAccountBook.getTransactionSet.getAllTxns
         val existing = TxnUtil.getListOfAllUsedTransactionTags(transactions).asScala.toSet
-        (existing ++ additionalLabels).toSeq.sorted(Ordering.String).foreach { label =>
+        val labelsForList = (existing ++ additionalLabels).toSeq.sorted(Ordering.String)
+        val cbs = labelsForList.map { label =>
           val cb = new JCheckBox(label)
           cb.setSelected(selectedLabels.contains(label))
           cb.addActionListener(new ActionListener {
@@ -135,9 +141,9 @@ class ForceLabelSettingsFrame(
               setLabelActiveInConfiguration(configName, label, cb.isSelected)
             }
           })
-          panLabelsList.add(cb, new CC().wrap)
+          cb
         }
-        panLabelsList.add(panAddLabel, new CC().wrap)
+        lstLabels.setListData(cbs.toArray)
         pack()
       }
     }
@@ -150,7 +156,6 @@ class ForceLabelSettingsFrame(
     } else {
       configurationMap += (configName -> (actual - label))
     }
-    saveSettings()
   }
 
   private def newAdditionalLabel(): Unit = {
@@ -167,7 +172,12 @@ class ForceLabelSettingsFrame(
 
   private def renameConfiguration(): Unit = ???
 
-  private def runConfiguration(): Unit = ???
+  private def runConfiguration(): Unit = {
+    // Before starting a run, save the current configuration (in case it changed)
+    saveSettings()
+
+    // todo: Perform the labelling run.
+  }
 
   private def saveSettings(): Unit = {
     val configurationSeq = configurationMap.map {
