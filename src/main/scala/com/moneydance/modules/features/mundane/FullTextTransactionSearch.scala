@@ -2,19 +2,19 @@ package com.moneydance.modules.features.mundane
 
 import java.awt.Color.{black, white}
 import java.awt.event.{KeyAdapter, KeyEvent}
-import java.awt.{Color, FlowLayout}
+import java.awt.{Color, Component, FlowLayout}
 import javax.swing.WindowConstants.DISPOSE_ON_CLOSE
 import javax.swing._
 
-import com.github.adeynack.scala.swing.SimpleAction
+import com.github.adeynack.scala.swing.mig.MigPanel
+import com.github.adeynack.scala.swing.{FlowPanel, SimpleAction}
 import com.infinitekind.moneydance.model.ParentTxn
 import com.infinitekind.util.DateUtil
 import com.moneydance.apps.md.controller.FeatureModuleContext
 import com.moneydance.awt.AwtUtil
 import com.moneydance.modules.features.mundane.FullTextTransactionSearch.Settings
+import com.moneydance.modules.scalamd.Extensions._
 import com.moneydance.modules.scalamd.{JsonLocalStorage, SingletonFrameSubFeature, Storage}
-import net.miginfocom.layout.{AC, CC, LC}
-import net.miginfocom.swing.MigLayout
 import play.api.libs.json.{Format, Json}
 
 import scala.collection.JavaConverters._
@@ -43,44 +43,56 @@ class FullTextTransactionSearchFrame(
 
   import FullTextTransactionSearchFrame._
 
-  setDefaultCloseOperation(DISPOSE_ON_CLOSE)
-  setTitle("Full Text Transaction Search")
+
+  //
+  // GUI
+  //
 
   private val actionClose = SimpleAction("Close")(dispose)
   private val actionSearch = SimpleAction("Search")(performQuery)
 
-  private val content = new JPanel(new MigLayout(
-    new LC(),
-    new AC()
+  private val content = new MigPanel() {
+
+    columns
       .grow.fill.gap
-      .shrink,
-    new AC()
+      .shrink
+
+    rows
       .shrink.gap
       .grow.fill.gap
       .shrink
-  ))
 
-  private val txtSearchInput = new JTextField()
-  txtSearchInput.setText(settings.get.lastSearchQuery)
-  txtSearchInput.setAction(actionSearch)
-  txtSearchInput.addKeyListener(TxtSearchInputKeyListener)
-  content.add(txtSearchInput)
+    val txtSearchInput = lay a new JTextField(settings.get.lastSearchQuery) {
+      setAction(actionSearch)
+      addKeyListener(TxtSearchInputKeyListener)
+    }
 
-  private val btnSearch = new JButton(actionSearch)
-  content.add(btnSearch, new CC().wrap)
+    val btnSearch = lay at cc.wrap a new JButton(actionSearch)
 
-  private val scrResults = new JScrollPane(new JPanel())
-  content.add(scrResults, new CC().spanX.wrap)
+    val scrResults = lay at cc.spanX.wrap a new JScrollPane(new JPanel())
 
-  private val pnlButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT))
-  pnlButtons.add(new JButton(actionClose))
-  content.add(pnlButtons, new CC().spanX.wrap)
+    val pnlButtons = lay at cc.spanX.wrap a new FlowPanel(FlowLayout.RIGHT)() {
+      lay a new JButton(actionClose)
+    }
+
+  }
+
+
+  //
+  // Constructor
+  //
+
+  setDefaultCloseOperation(DISPOSE_ON_CLOSE)
+  setTitle("Full Text Transaction Search")
 
   setContentPane(content)
   setSize(1000, 600)
   AwtUtil.centerWindow(this)
 
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  //
+  // Methods
+  //
 
   private object TxtSearchInputKeyListener extends KeyAdapter {
 
@@ -92,51 +104,33 @@ class FullTextTransactionSearchFrame(
   }
 
   private def performQuery(): Unit = {
-    val query = txtSearchInput.getText
+    val query = content.txtSearchInput.getText
     settings.update(_.copy(lastSearchQuery = query))
-    val panResults = new JPanel(new MigLayout(
-      new LC().gridGap("4px", "2px"),
-      new AC(),
-      new AC()
-    ))
-    context.getCurrentAccountBook.getTransactionSet.asScala
-      .collect { case t: ParentTxn => t }
-      .filter { (t: ParentTxn) =>
-        t.getDescription.contains(query) ||
-        t.getAttachmentKeys.asScala.exists(_.contains(query)) ||
-        t.hasKeywordSubstring(query, false)
-      }
-      .foreach { (t: ParentTxn) =>
+    content.scrResults.setViewportView(
+      new MigPanel(_.gridGap("4px", "2px")) {
+        context.getCurrentAccountBook.getTransactionSet.asScala
+          .collect { case t: ParentTxn => t }
+          .filter { t =>
+            t.getDescription.contains(query) ||
+            t.getAttachmentKeys.asScala.exists(_.contains(query)) ||
+            t.hasKeywordSubstring(query, false)
+          }
+          .foreach { t =>
 
-        var l = new JLabel(DateUtil.convertIntDateToLong(t.getDateInt).toString)
-        l.setOpaque(true)
-        l.setBackground(resultColorDate)
-        l.setForeground(white)
-        panResults.add(l, new CC().growX)
+            def cell(t: String, bg: Color, fg: Color) = new JLabel(t) {
+              setOpaque(true)
+              setBackground(bg)
+              setForeground(fg)
+            }
 
-        l = new JLabel(t.getDescription)
-        l.setOpaque(true)
-        l.setBackground(resultColorDescription)
-        l.setForeground(black)
-        panResults.add(l)
-
-        l = new JLabel(t.getAccount.getFullAccountName)
-        l.setOpaque(true)
-        l.setBackground(resultColorSource)
-        l.setForeground(black)
-        panResults.add(l)
-
-        val panSplits = new JPanel(new FlowLayout(FlowLayout.LEFT))
-        Iterator.tabulate(t.getSplitCount)(t.getSplit).foreach { split =>
-          val l = new JLabel(s"${split.getAmount / 100.0} to ${split.getAccount.getFullAccountName}")
-          l.setOpaque(true)
-          l.setBackground(resultColorDestination)
-          l.setForeground(white)
-          panSplits.add(l)
-        }
-        panResults.add(panSplits, new CC().growX.wrap)
-      }
-    scrResults.setViewportView(panResults)
+            lay at cc.growX a cell(DateUtil.convertIntDateToLong(t.getDateInt).toString, resultColorDate, white)
+            lay a cell(t.getDescription, resultColorDescription, black)
+            lay a cell(t.getAccount.getFullAccountName, resultColorSource, black)
+            lay at cc.growX.wrap a new FlowPanel(FlowLayout.LEFT)(t.splits.map { s =>
+              cell(s"${s.getAmount / 100.0} to ${s.getAccount.getFullAccountName}", resultColorDestination, white).asInstanceOf[Component]
+            }.toSeq: _*)
+          }
+      })
   }
 
 }

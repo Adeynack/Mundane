@@ -14,9 +14,10 @@ object MdJsonFormats {
   implicit val accountTypeWrites: Writes[AccountType] = (
     (__ \ 'name).write[String] ~
     (__ \ 'code).write[Int]
-    ) { t: AccountType => (
-    t.name(),
-    t.code()
+    ) { t: AccountType =>
+    (
+      t.name(),
+      t.code()
     )
   }
 
@@ -24,10 +25,11 @@ object MdJsonFormats {
     (__ \ 'name).write[String] ~
     (__ \ 'type).write[AccountType] ~
     (__ \ 'subAccounts).lazyWriteNullable(Writes.traversableWrites[Account])
-    ) { a: Account => (
-    a.getAccountName,
-    a.getAccountType,
-    a.getSubAccounts.asScala.noneIfEmpty
+    ) { a: Account =>
+    (
+      a.getAccountName,
+      a.getAccountType,
+      a.getSubAccounts.asScala.noneIfEmpty
     )
   }
 

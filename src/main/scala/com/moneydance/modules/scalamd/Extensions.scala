@@ -2,7 +2,7 @@ package com.moneydance.modules.scalamd
 
 import java.time.LocalDate
 
-import com.infinitekind.moneydance.model.Txn
+import com.infinitekind.moneydance.model.{ParentTxn, SplitTxn, Txn}
 import com.infinitekind.util.DateUtil
 
 object Extensions {
@@ -26,6 +26,12 @@ object Extensions {
     def getDateLD: LocalDate = mdIntDateToLocalDate(transaction.getDateInt)
 
     def getTaxDateLD: LocalDate = mdIntDateToLocalDate(transaction.getTaxDateInt)
+
+  }
+
+  implicit class ParentTxnExtensions(val transaction: ParentTxn) extends AnyVal {
+
+    def splits: Iterable[SplitTxn] = Iterator.tabulate(transaction.getSplitCount)(transaction.getSplit).toIterable
 
   }
 

@@ -7,13 +7,12 @@ import javax.swing.WindowConstants.DISPOSE_ON_CLOSE
 import javax.swing._
 import javax.swing.event.{ListSelectionEvent, ListSelectionListener}
 
-import com.github.adeynack.scala.swing.{CheckBoxList, SimpleAction}
+import com.github.adeynack.scala.swing.mig.MigPanel
+import com.github.adeynack.scala.swing._
 import com.infinitekind.moneydance.model.TxnUtil
 import com.moneydance.apps.md.controller.FeatureModuleContext
 import com.moneydance.awt.AwtUtil
 import com.moneydance.modules.scalamd.Storage
-import net.miginfocom.layout.{AC, CC, LC}
-import net.miginfocom.swing.MigLayout
 
 import scala.collection.JavaConverters._
 
@@ -22,9 +21,9 @@ class ForceLabelSettingsFrame(
   settings: Storage[ForceLabelSettings]
 ) extends JFrame { frame =>
 
-  setDefaultCloseOperation(DISPOSE_ON_CLOSE)
-
-  addWindowListener(ThisWindowListener)
+  //
+  // GUI and fields
+  //
 
   private var configurationMap: Map[String, Set[String]] = {
     settings.get.configurations.map {
@@ -42,68 +41,67 @@ class ForceLabelSettingsFrame(
   private val actionRefreshLabels = SimpleAction("Refresh")(fillLabelList)
   private val actionAddLabel = SimpleAction("Add")(newAdditionalLabel)
 
-  private val content = new JPanel(new MigLayout(
-    new LC(),
-    new AC()
+  private val content = new MigPanel {
+
+    columns
       .size("30%").fill.gap
-      .grow.fill,
-    new AC()
+      .grow.fill
+
+    rows
       .shrink.fill.gap
       .grow.fill.gap
       .shrink.fill
-  ))
 
-  content.add(new JLabel("Configurations"))
+    lay a new JLabel("Configurations")
 
-  private val panLabelsTitle = new JPanel(new FlowLayout(FlowLayout.LEFT))
-  panLabelsTitle.add(new JLabel("Labels"))
-  panLabelsTitle.add(new JButton(actionRefreshLabels))
-  content.add(panLabelsTitle, new CC().wrap)
+    val panLabelsTitle = lay at cc.wrap a new FlowPanel(FlowLayout.LEFT)(
+      new JLabel("Labels"),
+      new JButton(actionRefreshLabels)
+    )
 
-  private val lstConfigurations = new JList[String]
-  lstConfigurations.setSelectionMode(SINGLE_SELECTION)
-  lstConfigurations.addListSelectionListener(LstConfigurationListSelectionListener)
-  content.add(new JScrollPane(lstConfigurations))
+    val lstConfigurations = lay a new JList[String] {
+      setSelectionMode(SINGLE_SELECTION)
+      addListSelectionListener(LstConfigurationListSelectionListener)
+    }
 
-  private val lstLabels = new CheckBoxList()
-  content.add(new JScrollPane(lstLabels), new CC().wrap)
+    val lstLabels = lay at cc.wrap a new CheckBoxList()
 
-  content.add(new JPanel(new BorderLayout()) {
+    lay at cc.spanX a new BorderPanel {
+      lay at BorderLayout.WEST a new ButtonFlowPanel(FlowLayout.LEFT)(actionRun)
+      lay at BorderLayout.CENTER a new ButtonFlowPanel(FlowLayout.CENTER)(actionNew,actionDelete,actionRename)
+      lay at BorderLayout.EAST a new ButtonFlowPanel(FlowLayout.RIGHT)(actionClose)
+    }
 
-    add(new JPanel(new FlowLayout(FlowLayout.LEFT)) {
-      add(new JButton(actionRun))
-    }, BorderLayout.WEST)
+    // `panAddLabel` is added to the GUI in method `fillLabelList`.
+    val panAddLabel = new FlowPanel(FlowLayout.LEFT)() {
 
-    add(new JPanel(new FlowLayout(FlowLayout.CENTER)) {
-      add(new JButton(actionNew))
-      add(new JButton(actionDelete))
-      add(new JButton(actionRename))
-    }, BorderLayout.CENTER)
+      val txtNewLabel = new JTextField() {
+        setPreferredSize(new Dimension(200, getPreferredSize.height))
+        setAction(actionAddLabel)
+      }
+      this add txtNewLabel
+      this add new JButton(actionAddLabel)
 
-    add(new JPanel(new FlowLayout(FlowLayout.RIGHT)) {
-      add(new JButton(actionClose))
-    }, BorderLayout.EAST)
+    }
 
-  }, new CC().spanX)
+  }
 
-  // `panAddLabel` is added to the GUI in method `fillLabelList`.
-  private val panAddLabel = new JPanel(new FlowLayout(FlowLayout.LEFT))
-  private val txtNewLabel = new JTextField()
-  txtNewLabel.setPreferredSize(new Dimension(200, txtNewLabel.getPreferredSize.height))
-  txtNewLabel.setAction(actionAddLabel)
-  panAddLabel.add(txtNewLabel)
-  panAddLabel.add(new JButton(actionAddLabel))
+  //
+  // Constructor
+  //
 
+  setDefaultCloseOperation(DISPOSE_ON_CLOSE)
+  addWindowListener(ThisWindowListener)
   fillConfigurationList()
-
   setContentPane(content)
-
   setTitle(ForceLabel.name)
   setPreferredSize(new Dimension(1000, 600))
   pack()
   AwtUtil.centerWindow(this)
 
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //
+  // Methods
+  //
 
   private object ThisWindowListener extends WindowAdapter {
     override def windowClosed(e: WindowEvent): Unit = {
@@ -117,16 +115,16 @@ class ForceLabelSettingsFrame(
 
   private def fillConfigurationList(): Unit = {
     val configurationNames = configurationMap.keys.toArray
-    lstConfigurations.setListData(configurationNames)
+    content.lstConfigurations.setListData(configurationNames)
     if (configurationNames.nonEmpty) {
-      lstConfigurations.setSelectedIndex(0)
+      content.lstConfigurations.setSelectedIndex(0)
     } else {
       fillLabelList()
     }
   }
 
   private def fillLabelList(): Unit = {
-    val selected = Option(lstConfigurations.getSelectedValue)
+    val selected = Option(content.lstConfigurations.getSelectedValue)
     actionRefreshLabels.setEnabled(selected.nonEmpty)
     selected.foreach { configName =>
       configurationMap.get(configName).foreach { selectedLabels =>
@@ -143,7 +141,7 @@ class ForceLabelSettingsFrame(
           })
           cb
         }
-        lstLabels.setListData(cbs.toArray)
+        content.lstLabels.setListData(cbs.toArray)
         pack()
       }
     }
@@ -159,10 +157,10 @@ class ForceLabelSettingsFrame(
   }
 
   private def newAdditionalLabel(): Unit = {
-    val label = txtNewLabel.getText()
+    val label = content.panAddLabel.txtNewLabel.getText()
     additionalLabels += label
-    txtNewLabel.setText("")
-    Option(lstConfigurations.getSelectedValue).foreach(setLabelActiveInConfiguration(_, label, true))
+    content.panAddLabel.txtNewLabel.setText("")
+    Option(content.lstConfigurations.getSelectedValue).foreach(setLabelActiveInConfiguration(_, label, true))
     fillLabelList()
   }
 
