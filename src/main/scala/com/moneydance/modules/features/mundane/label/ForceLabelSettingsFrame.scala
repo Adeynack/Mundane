@@ -7,17 +7,16 @@ import javax.swing.WindowConstants.DISPOSE_ON_CLOSE
 import javax.swing._
 import javax.swing.event.{ListSelectionEvent, ListSelectionListener}
 
-import com.github.adeynack.scala.swing.mig.MigPanel
 import com.github.adeynack.scala.swing._
+import com.github.adeynack.scala.swing.mig.MigPanel
 import com.infinitekind.moneydance.model.TxnUtil
-import com.moneydance.apps.md.controller.FeatureModuleContext
 import com.moneydance.awt.AwtUtil
-import com.moneydance.modules.scalamd.Storage
+import com.moneydance.modules.scalamd.{Storage, SubFeatureContext}
 
 import scala.collection.JavaConverters._
 
 class ForceLabelSettingsFrame(
-  context: FeatureModuleContext,
+  context: SubFeatureContext,
   settings: Storage[ForceLabelSettings]
 ) extends JFrame { frame =>
 
@@ -25,13 +24,11 @@ class ForceLabelSettingsFrame(
   // GUI and fields
   //
 
-  private var configurationMap: Map[String, Set[String]] = {
-    settings.get.configurations.map {
-      case ForceLabelConfiguration(name, labels) => name -> labels
-    }.toMap
+  private var configurationMap: Map[String, ForceLabelConfiguration] = {
+    settings.get.configurations.map(c => c.name -> c).toMap
   }
 
-  private var additionalLabels: Set[String] = configurationMap.values.flatten.toSet
+  private var additionalLabels: Set[String] = configurationMap.values.flatMap(_.labels).toSet
 
   private val actionClose = SimpleAction("Close")(dispose)
   private val actionNew = SimpleAction("New")(addConfiguration)
@@ -43,13 +40,15 @@ class ForceLabelSettingsFrame(
 
   private val content = new MigPanel {
 
+    layoutConstraints.debug
+
     columns
       .size("30%").fill.gap
       .grow.fill
 
     rows
       .shrink.fill.gap
-      .grow.fill.gap
+      .grow.shrink.fill.gap
       .shrink.fill
 
     lay a new JLabel("Configurations")
@@ -59,16 +58,16 @@ class ForceLabelSettingsFrame(
       new JButton(actionRefreshLabels)
     )
 
-    val lstConfigurations = lay a new JList[String] {
+    val lstConfigurations = lay aScrolled new JList[String] {
       setSelectionMode(SINGLE_SELECTION)
       addListSelectionListener(LstConfigurationListSelectionListener)
     }
 
-    val lstLabels = lay at cc.wrap a new CheckBoxList()
+    val lstLabels = lay at cc.wrap aScrolled new CheckBoxList()
 
     lay at cc.spanX a new BorderPanel {
       lay at BorderLayout.WEST a new ButtonFlowPanel(FlowLayout.LEFT)(actionRun)
-      lay at BorderLayout.CENTER a new ButtonFlowPanel(FlowLayout.CENTER)(actionNew,actionDelete,actionRename)
+      lay at BorderLayout.CENTER a new ButtonFlowPanel(FlowLayout.CENTER)(actionNew, actionDelete, actionRename)
       lay at BorderLayout.EAST a new ButtonFlowPanel(FlowLayout.RIGHT)(actionClose)
     }
 
@@ -127,7 +126,7 @@ class ForceLabelSettingsFrame(
     val selected = Option(content.lstConfigurations.getSelectedValue)
     actionRefreshLabels.setEnabled(selected.nonEmpty)
     selected.foreach { configName =>
-      configurationMap.get(configName).foreach { selectedLabels =>
+      configurationMap.get(configName).iterator.flatMap(_.labels).foreach { selectedLabels =>
         val transactions = context.getCurrentAccountBook.getTransactionSet.getAllTxns
         val existing = TxnUtil.getListOfAllUsedTransactionTags(transactions).asScala.toSet
         val labelsForList = (existing ++ additionalLabels).toSeq.sorted(Ordering.String)
@@ -142,7 +141,7 @@ class ForceLabelSettingsFrame(
           cb
         }
         content.lstLabels.setListData(cbs.toArray)
-        pack()
+        //        pack()
       }
     }
   }
@@ -150,9 +149,9 @@ class ForceLabelSettingsFrame(
   private def setLabelActiveInConfiguration(configName: String, label: String, active: Boolean) = {
     val actual = configurationMap(configName)
     if (active) {
-      configurationMap += (configName -> (actual + label))
+      configurationMap += (configName -> actual.copy(labels = actual.labels + label))
     } else {
-      configurationMap += (configName -> (actual - label))
+      configurationMap += (configName -> actual.copy(labels = actual.labels - label))
     }
   }
 
@@ -178,12 +177,8 @@ class ForceLabelSettingsFrame(
   }
 
   private def saveSettings(): Unit = {
-    val configurationSeq = configurationMap.map {
-      case (name, labels) =>
-        ForceLabelConfiguration(name, labels)
-    }.toSeq
     settings.update(_.copy(
-      configurations = configurationSeq
+      configurations = configurationMap.values.toSeq
     ))
   }
 

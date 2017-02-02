@@ -1,7 +1,7 @@
 package com.github.adeynack.scala.swing
 
 import java.awt.{BorderLayout, Component, FlowLayout}
-import javax.swing.{Action, JButton, JPanel}
+import javax.swing.{Action, JButton, JPanel, JScrollPane}
 
 trait JPanelWithLayout[Constraint] { thisPanel: JPanel =>
 
@@ -12,10 +12,20 @@ trait JPanelWithLayout[Constraint] { thisPanel: JPanel =>
       component
     }
 
+    def aScrolled[T <: Component](component: T): T = {
+      thisPanel.add(new JScrollPane(component))
+      component
+    }
+
     def at(constraints: Constraint) = new {
 
       def a[T <: Component](component: T): T = {
         thisPanel.add(component, constraints)
+        component
+      }
+
+      def aScrolled[T <: Component](component: T): T = {
+        thisPanel.add(new JScrollPane(component), constraints)
         component
       }
 

@@ -13,7 +13,7 @@ trait Storage[T] {
 
 }
 
-class JsonLocalStorage[T](val key: String, default: => T, context: FeatureModuleContext)(implicit reads: Reads[T], writes: Writes[T])
+class JsonLocalStorage[T](val key: String, default: => T, context: SubFeatureContext)(implicit reads: Reads[T], writes: Writes[T])
   extends Storage[T] {
 
   private val localStorage = context.getCurrentAccountBook.getLocalStorage
@@ -22,7 +22,7 @@ class JsonLocalStorage[T](val key: String, default: => T, context: FeatureModule
 
   def set(value: T): Unit = {
     val toJson = Json.toJson(value)
-    System.err.println(s"""Saving to local storage with key "$key" and value ${Json.prettyPrint(toJson)}""")
+    context.info(s"""Saving to local storage with key "$key" and value ${Json.prettyPrint(toJson)}""")
     localStorage.put(key, toJson.toString)
     cached = Some(value)
   }
@@ -42,22 +42,22 @@ class JsonLocalStorage[T](val key: String, default: => T, context: FeatureModule
           val contentJsVal = Json.parse(content)
           contentJsVal.validate[T] match {
             case JsSuccess(value, _) =>
-              System.err.println(s"""Loaded local storage from key "$key". Read value ${Json.prettyPrint(contentJsVal)}""")
+              context.info(s"""Loaded local storage from key "$key". Read value ${Json.prettyPrint(contentJsVal)}""")
               value
             case JsError(failedPaths) =>
-              System.err.println(s"""Failed to parse setting from local storage under key "$key" with value ${Json.prettyPrint(contentJsVal)}""")
+              context.error(s"""Failed to parse setting from local storage under key "$key" with value ${Json.prettyPrint(contentJsVal)}""")
               failedPaths.foreach { case (path, validationErrors) =>
-                System.err.println(s"""  For JSON path "$path":""")
+                context.error(s"""  For JSON path "$path":""")
                 validationErrors.foreach { validationError =>
-                  System.err.println(s"""    $validationError""")
+                  context.error(s"""    $validationError""")
                 }
               }
-              System.err.println(s"""  Using default: $default""")
+              context.error(s"""  Using default: $default""")
               default
           }
         }
         .getOrElse {
-          System.err.println(s"""No local storage value found for key "$key". Using default: $default""")
+          context.error(s"""No local storage value found for key "$key". Using default: $default""")
           default
         }
     cached = Some(storageValue)

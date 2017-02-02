@@ -1,8 +1,8 @@
 package com.moneydance.modules.features.mundane.label
 
-import com.moneydance.apps.md.controller.FeatureModuleContext
-import com.moneydance.modules.features.mundane.Main
-import com.moneydance.modules.scalamd.{JsonLocalStorage, SingletonFrameSubFeature}
+import java.time.LocalDate
+
+import com.moneydance.modules.scalamd.{SingletonFrameSubFeature, SubFeatureContext}
 import play.api.libs.json.Json
 
 /**
@@ -13,7 +13,9 @@ import play.api.libs.json.Json
   */
 case class ForceLabelConfiguration(
   name: String,
-  labels: Set[String]
+  labels: Set[String],
+  from: Option[LocalDate],
+  to: Option[LocalDate]
 )
 
 /**
@@ -31,11 +33,9 @@ object ForceLabel extends SingletonFrameSubFeature[ForceLabelSettingsFrame] {
 
   override val name = "Force Label"
 
-  override protected def createFrame(context: FeatureModuleContext): ForceLabelSettingsFrame = {
-    new ForceLabelSettingsFrame(
-      context,
-      new JsonLocalStorage[ForceLabelSettings](Main.localStorageKey("ForceLabel"), ForceLabelSettings(), context)
-    )
-  }
+  override protected def createFrame(context: SubFeatureContext) = new ForceLabelSettingsFrame(
+    context,
+    context.getStorage("ForceLabel", ForceLabelSettings())
+  )
 
 }

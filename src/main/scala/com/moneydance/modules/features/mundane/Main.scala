@@ -7,11 +7,13 @@ import javax.swing.SwingUtilities
 import com.infinitekind.moneydance.model._
 import com.moneydance.apps.md.controller.FeatureModule
 import com.moneydance.modules.features.mundane.label.ForceLabel
-import com.moneydance.modules.scalamd.SubFeature
+import com.moneydance.modules.scalamd.{SubFeature, SubFeatureContext}
 
 import scala.collection.breakOut
 
 class Main extends FeatureModule {
+
+  private lazy val context = new SubFeatureContext(getContext)
 
   private val features: Map[String, SubFeature] = Seq[SubFeature](
     ForceLabel,
@@ -21,40 +23,40 @@ class Main extends FeatureModule {
 
   override def init(): Unit = {
     features.foreach { case (k: String, f: SubFeature) =>
-      getContext.registerFeature(this, k, f.image.getOrElse(icon), f.name)
+      context.registerFeature(this, k, f.image.getOrElse(icon), f.name)
     }
   }
 
   private val accountBookListener = new AccountBookListener {
 
     override def accountBookDataUpdated(accountBook: AccountBook): Unit =
-      System.err.println(s"AccountBookListener::accountBookDataUpdated accountBook = $accountBook")
+      context.info(s"AccountBookListener::accountBookDataUpdated accountBook = $accountBook")
 
     override def accountBookDataReplaced(accountBook: AccountBook): Unit =
-      System.err.println(s"AccountBookListener::accountBookDataReplaced accountBook = $accountBook")
+      context.info(s"AccountBookListener::accountBookDataReplaced accountBook = $accountBook")
 
   }
 
   private val accountListener = new AccountListener {
 
     override def accountAdded(account: Account, account1: Account): Unit =
-      System.err.println(s"AccountListener::accountAdded account = $account account1 = $account1")
+      context.info(s"AccountListener::accountAdded account = $account account1 = $account1")
 
     override def accountDeleted(account: Account, account1: Account): Unit =
-      System.err.println(s"AccountListener::accountDeleted account = $account account1 = $account1")
+      context.info(s"AccountListener::accountDeleted account = $account account1 = $account1")
 
     override def accountBalanceChanged(account: Account): Unit =
-      System.err.println(s"AccountListener::accountBalanceChanged account = $account")
+      context.info(s"AccountListener::accountBalanceChanged account = $account")
 
     override def accountModified(account: Account): Unit =
-      System.err.println(s"AccountListener::accountModified account = $account")
+      context.info(s"AccountListener::accountModified account = $account")
 
   }
 
   val fileListener = new MDFileListener {
 
     override def dirtyStateChanged(account: Account): Unit =
-      System.err.println(s"MDFileListener::dirtyStateChanged account = $account")
+      context.info(s"MDFileListener::dirtyStateChanged account = $account")
 
   }
 
@@ -73,18 +75,17 @@ class Main extends FeatureModule {
       }
       Toolkit.getDefaultToolkit.createImage(bout.toByteArray)
     } getOrElse {
-      System.err.println(s"""Resource at "$res" was not found.""")
+      context.info(s"""Resource at "$res" was not found.""")
       null
     }
   }
 
-  override def invoke(s: String): Unit = features(s).invoke(getContext)
+  override def invoke(s: String): Unit = features(s).invoke(context)
 
   override def handleEvent(appEvent: String): Unit = {
-    val context = getContext
     appEvent match {
       case "md:account:root" =>
-        System.err.println(s"Main::handleEvent appEvent = $appEvent")
+        context.info(s"Main::handleEvent appEvent = $appEvent")
         context.getCurrentAccountBook.addListener(accountBookListener)
         context.getCurrentAccountBook.addAccountListener(accountListener)
         context.getCurrentAccountBook.addFileListener(fileListener)
@@ -96,7 +97,7 @@ class Main extends FeatureModule {
         })
 
       case _ =>
-        System.err.println(s"Main::handleEvent appEvent = $appEvent")
+        context.info(s"Main::handleEvent appEvent = $appEvent")
     }
     super.handleEvent(appEvent)
   }

@@ -28,7 +28,7 @@ trait SubFeature { self =>
     *
     * @param context the Moneydance context.
     */
-  def invoke(context: FeatureModuleContext): Unit
+  def invoke(context: SubFeatureContext): Unit
 
 }
 
@@ -36,13 +36,13 @@ abstract class SingletonFrameSubFeature[F <: JFrame] extends SubFeature {
 
   private val lock = new Object
 
-  protected def createFrame(context: FeatureModuleContext): F
+  protected def createFrame(context: SubFeatureContext): F
 
   private var _frame: Option[F] = None
 
   protected def frame: Option[F] = _frame
 
-  override def invoke(context: FeatureModuleContext): Unit = lock.synchronized {
+  override def invoke(context: SubFeatureContext): Unit = lock.synchronized {
     if (_frame.isEmpty) {
       _frame = Some {
         val f = createFrame(context)

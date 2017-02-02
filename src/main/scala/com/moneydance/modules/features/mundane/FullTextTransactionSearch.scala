@@ -10,39 +10,37 @@ import com.github.adeynack.scala.swing.mig.MigPanel
 import com.github.adeynack.scala.swing.{FlowPanel, SimpleAction}
 import com.infinitekind.moneydance.model.ParentTxn
 import com.infinitekind.util.DateUtil
-import com.moneydance.apps.md.controller.FeatureModuleContext
 import com.moneydance.awt.AwtUtil
-import com.moneydance.modules.features.mundane.FullTextTransactionSearch.Settings
+import com.moneydance.modules.features.mundane.FullTextTransactionSearch.FullTextTransactionSearchSettings
 import com.moneydance.modules.scalamd.Extensions._
-import com.moneydance.modules.scalamd.{JsonLocalStorage, SingletonFrameSubFeature, Storage}
-import play.api.libs.json.{Format, Json}
+import com.moneydance.modules.scalamd.{SingletonFrameSubFeature, Storage, SubFeatureContext}
+import play.api.libs.json.Json
 
 import scala.collection.JavaConverters._
 
 object FullTextTransactionSearch extends SingletonFrameSubFeature[FullTextTransactionSearchFrame] {
 
-  case class Settings(
+  case class FullTextTransactionSearchSettings(
     lastSearchQuery: String = ""
   )
 
-  implicit val settingsFormats: Format[Settings] = Json.format[Settings]
+  implicit val settingsFormats = Json.format[FullTextTransactionSearchSettings]
 
   override def name = "Full Text Transaction Search"
 
-  override protected def createFrame(context: FeatureModuleContext) = new FullTextTransactionSearchFrame(
+  override protected def createFrame(context: SubFeatureContext) = new FullTextTransactionSearchFrame(
     context,
-    new JsonLocalStorage(Main.localStorageKey("FullTextTransactionSearch"), Settings(), context)
+    context.getStorage("FullTextTransactionSearch", FullTextTransactionSearchSettings())
   )
 
 }
 
 class FullTextTransactionSearchFrame(
-  private val context: FeatureModuleContext,
-  private val settings: Storage[Settings]
+  private val context: SubFeatureContext,
+  private val settings: Storage[FullTextTransactionSearchSettings]
 ) extends JFrame {
 
   import FullTextTransactionSearchFrame._
-
 
   //
   // GUI
