@@ -7,6 +7,7 @@ import javax.swing.SwingUtilities
 import com.infinitekind.moneydance.model._
 import com.moneydance.apps.md.controller.FeatureModule
 import com.moneydance.modules.features.mundane.label.ForceLabel
+import com.moneydance.modules.features.mundane.logViewer.LogViewer
 import com.moneydance.modules.scalamd.{SubFeature, SubFeatureContext}
 
 import scala.collection.breakOut
@@ -18,7 +19,8 @@ class Main extends FeatureModule {
   private val features: Map[String, SubFeature] = Seq[SubFeature](
     ForceLabel,
     FullTextTransactionSearch,
-    JsonAccountExport
+    JsonAccountExport,
+    LogViewer
   ).map(f => f.key -> f)(breakOut)
 
   override def init(): Unit = {
@@ -93,7 +95,10 @@ class Main extends FeatureModule {
       case "md:file:opened" =>
         // todo : Remove this (there for debugging reasons)
         SwingUtilities.invokeLater(new Runnable {
-          override def run(): Unit = invoke(ForceLabel.key)
+          override def run(): Unit = {
+            invoke(LogViewer.key)
+            invoke(ForceLabel.key)
+          }
         })
 
       case _ =>

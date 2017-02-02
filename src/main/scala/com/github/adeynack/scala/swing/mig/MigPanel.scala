@@ -20,7 +20,7 @@ class MigPanel(
     layoutConstraints: (LC) => Unit = _ => Unit,
     columnsConstraints: (AC) => Unit = _ => Unit,
     rowsConstraints: (AC) => Unit = _ => Unit
-  ) = this(init(new LC, layoutConstraints), init(new AC, columnsConstraints), init(new AC, rowsConstraints))
+  ) = this(init(new LC)(layoutConstraints), init(new AC)(columnsConstraints), init(new AC)(rowsConstraints))
 
   /**
     * Shortcut for creating a new [[CC]].

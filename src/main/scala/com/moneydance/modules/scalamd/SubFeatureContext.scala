@@ -8,22 +8,21 @@ import com.moneydance.apps.md.extensionapi.AccountEditor
 import com.moneydance.apps.md.view.HomePageView
 import play.api.libs.json.{Reads, Writes}
 
-class SubFeatureContext(baseContext: FeatureModuleContext) extends FeatureModuleContext {
+class SubFeatureContext(baseContext: FeatureModuleContext) extends FeatureModuleContext with Logger {
+
+  var loggers: Set[Logger] = Set(new SystemErrLogger)
 
   //
   // Logging
   //
 
-  def info(message: String): Unit = {
-    System.err.println(s"[INFO] $message")
+  def addLogger(logger: Logger): Unit = {
+    loggers += logger
   }
 
-  def error(message: String, error: Throwable = null): Unit = {
-    System.err.println(s"[ERROR] $message")
-    if (error != null) {
-      System.err.println(error.toString)
-    }
-  }
+  def info(message: String): Unit = loggers.foreach(_.info(message))
+
+  def error(message: String, error: Throwable = null): Unit = loggers.foreach(_.error(message, error))
 
   //
   // Storage
@@ -54,5 +53,28 @@ class SubFeatureContext(baseContext: FeatureModuleContext) extends FeatureModule
     baseContext.registerAccountEditor(featureModule, i, accountEditor)
 
   override def getRootAccount: Account = baseContext.getRootAccount
+  
+}
+
+trait Logger {
+
+  def info(message: String): Unit
+
+  def error(message: String, error: Throwable = null): Unit
+
+}
+
+class SystemErrLogger extends Logger {
+
+  def info(message: String): Unit = {
+    System.err.println(s"[INFO] $message")
+  }
+
+  def error(message: String, error: Throwable = null): Unit = {
+    System.err.println(s"[ERROR] $message")
+    if (error != null) {
+      System.err.println(error.toString)
+    }
+  }
 
 }
