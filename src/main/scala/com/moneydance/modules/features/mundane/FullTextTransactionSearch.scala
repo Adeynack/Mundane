@@ -6,6 +6,7 @@ import java.awt.{Color, Component, FlowLayout}
 import javax.swing.WindowConstants.DISPOSE_ON_CLOSE
 import javax.swing._
 
+import com.github.adeynack.scala.Utils
 import com.github.adeynack.scala.swing.mig.MigPanel
 import com.github.adeynack.scala.swing.{FlowPanel, SimpleAction}
 import com.infinitekind.moneydance.model.ParentTxn
@@ -22,7 +23,9 @@ object FullTextTransactionSearch extends SingletonFrameSubFeature[FullTextTransa
 
   case class FullTextTransactionSearchSettings(
     lastSearchQuery: String = ""
-  )
+  ) {
+    override def toString: String = Utils.typedToString(this, Json.toJson(this))
+  }
 
   implicit val settingsFormats = Json.format[FullTextTransactionSearchSettings]
 

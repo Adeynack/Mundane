@@ -7,4 +7,10 @@ object Utils {
     o
   }
 
+  implicit def func2runnable(f: => Unit): Runnable = new Runnable {
+    override def run(): Unit = f
+  }
+
+  def typedToString(o: Any, v: Any): String = s"${o.getClass.getSimpleName} $v"
+
 }

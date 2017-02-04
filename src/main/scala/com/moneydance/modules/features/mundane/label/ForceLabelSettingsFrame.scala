@@ -11,6 +11,7 @@ import com.github.adeynack.scala.swing._
 import com.github.adeynack.scala.swing.mig.MigPanel
 import com.infinitekind.moneydance.model.TxnUtil
 import com.moneydance.awt.AwtUtil
+import com.moneydance.modules.features.mundane.label.ForceLabel.{ForceLabelConfiguration, ForceLabelSettings}
 import com.moneydance.modules.scalamd.{Storage, SubFeatureContext}
 
 import scala.collection.JavaConverters._

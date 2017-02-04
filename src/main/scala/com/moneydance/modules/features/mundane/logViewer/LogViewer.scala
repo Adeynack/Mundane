@@ -5,19 +5,41 @@ import java.time.LocalDateTime
 import javax.swing.text.DefaultCaret
 import javax.swing.{JFrame, JTextArea}
 
+import com.github.adeynack.scala.Utils
 import com.github.adeynack.scala.Utils.init
 import com.github.adeynack.scala.swing.BorderPanel
-import com.moneydance.modules.scalamd.{Logger, SingletonFrameSubFeature, SubFeatureContext}
+import com.moneydance.modules.features.mundane.logViewer.LogViewer.LogViewerSettings
+import com.moneydance.modules.scalamd._
+import play.api.libs.json.Json
 
 object LogViewer extends SingletonFrameSubFeature[LogViewerFrame] {
 
   override def name: String = "Log Viewer"
 
-  override protected def createFrame(context: SubFeatureContext): LogViewerFrame = new LogViewerFrame(context)
+  override protected def createFrame(context: SubFeatureContext): LogViewerFrame =
+    new LogViewerFrame(context, getStorage(context))
+
+  override def initialize(context: SubFeatureContext): Unit = {
+    val settings = getStorage(context).get
+    if (settings.openViewerOnStartup) {
+      invoke(context)
+    }
+  }
+
+  case class LogViewerSettings(
+    openViewerOnStartup: Boolean = true
+  ) {
+    override def toString: String = Utils.typedToString(this, Json.toJson(this))
+  }
+
+  implicit val logViewerSettingsFormat = Json.format[LogViewerSettings]
+
+  private def getStorage(context: SubFeatureContext) =
+    context.getStorage[LogViewerSettings]("LogViewer", LogViewerSettings())
 
 }
 
-class LogViewerFrame(context: SubFeatureContext) extends JFrame {
+class LogViewerFrame(context: SubFeatureContext, settings: Storage[LogViewerSettings]) extends JFrame {
 
   //
   // GUI

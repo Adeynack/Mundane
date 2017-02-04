@@ -1,5 +1,7 @@
 package com.moneydance.modules.features.mundane
 
+import com.github.adeynack.scala.Utils._
+
 import java.awt.{Image, Toolkit}
 import java.io.ByteArrayOutputStream
 import javax.swing.SwingUtilities
@@ -69,7 +71,9 @@ class Main extends FeatureModule {
     Option(getClass.getClassLoader.getResourceAsStream(res)) map { in =>
       val bout = new ByteArrayOutputStream(1000)
       val buf = new Array[Byte](256)
+
       def getNext = in.read(buf, 0, buf.length)
+
       var n = getNext
       while (n >= 0) {
         bout.write(buf, 0, n)
@@ -93,13 +97,13 @@ class Main extends FeatureModule {
         context.getCurrentAccountBook.addFileListener(fileListener)
 
       case "md:file:opened" =>
-        // todo : Remove this (there for debugging reasons)
-        SwingUtilities.invokeLater(new Runnable {
-          override def run(): Unit = {
-            invoke(LogViewer.key)
-            invoke(ForceLabel.key)
-          }
+        // Call the `initialize` of every feature.
+        features.values.foreach(f => SwingUtilities.invokeLater {
+          f.initialize(context)
         })
+
+        // todo : Remove this (there for debugging reasons)
+        SwingUtilities.invokeAndWait(invoke(ForceLabel.key))
 
       case _ =>
         context.info(s"Main::handleEvent appEvent = $appEvent")
