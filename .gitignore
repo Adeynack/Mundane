@@ -4,3 +4,4 @@ moneydance-devkit-4.0/
 *.iml
 priv_key
 pub_key
+*.ods#

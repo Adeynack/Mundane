@@ -9,8 +9,11 @@ object Extensions {
 
   def mdIntDateToLocalDate(i: Int): LocalDate = {
     // ie: 20161008
-    val year = i / 10000 // = 20161008 / 10000 = 2016
-    val month = (i / 100) % 100 // = (20161008 / 100) % 100 = 201610 % 100 = 10
+    // YEAR: 20161008 / 10000 = 2016
+    val year = i / 10000
+    // MONTH: (20161008 / 100) % 100 = 201610 % 100 = 10
+    val month = (i / 100) % 100
+    // DAY: 20161008 % 100 = 8
     val day = i % 100 // = 20161008 % 100 = 08
     LocalDate.of(year, month, day)
     // NB: The following implementation seams more logical, but is proven to be buggy:
@@ -33,6 +36,10 @@ object Extensions {
 
     def splits: Iterable[SplitTxn] = Iterator.tabulate(transaction.getSplitCount)(transaction.getSplit).toIterable
 
+  }
+
+  implicit def localDate2intDate(date: LocalDate): Int = {
+    date.getYear * 10000 + date.getMonthValue * 100 + date.getDayOfMonth
   }
 
   implicit class LocalDateExtensions(val date: LocalDate) extends AnyVal {

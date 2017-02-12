@@ -90,6 +90,7 @@ class Main extends FeatureModule {
 
   override def handleEvent(appEvent: String): Unit = {
     appEvent match {
+
       case "md:account:root" =>
         context.info(s"Main::handleEvent appEvent = $appEvent")
         context.getCurrentAccountBook.addListener(accountBookListener)
@@ -107,6 +108,7 @@ class Main extends FeatureModule {
 
       case _ =>
         context.info(s"Main::handleEvent appEvent = $appEvent")
+
     }
     super.handleEvent(appEvent)
   }
